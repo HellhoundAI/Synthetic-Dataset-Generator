@@ -1,7 +1,9 @@
 from src.generate import generate, generate_a_file, generate_with_file
 
+print("Available commands: 'g' for generate, 'gg' for generate in a file, 'o' to generate an output file, 'h' for help, 'q' for quit.\n")
+
 while True:
-    cmd = input("Available commands: 'g' for generate, 'gg' for generate in a file, 'o' to generate an output file, 'h' for help, 'q' for quit.\n")
+    cmd = input(">")
 
     if cmd == "g":
         print(generate(), end='')
@@ -13,7 +15,11 @@ while True:
         print("Done.")
 
     elif cmd == "h":
-        print("help")
+        print("""The 'g' command generates 1 sample attack.
+The 'gg' command will add a number of attacks to a specified file.
+The 'o' command will create a new file filled with a specified number of attacks. Useful for testing purposes.
+The 'h' command will print this.
+The 'q' command will quit the program.""")
 
     elif cmd == "i":
         print("input")

@@ -3,6 +3,7 @@ id,uzivatel,datum,url,odkud,oblast,parametry
 5,radoslav,3,yahoo,doma,eduroam,pc
 0,drahomira,4,yahoo,venku,eduroam,pc
 1,radoslav,2,google,venku,zamestnanec,pc
+HACK,radoslav,1,yahoo,doma,zamestnanec,pc
 5,drahomira,1,yahoo,doma,student,mobil
 0,radoslav,5,yahoo,doma,student,mobil
 4,drahomira,2,google,doma,eduroam,mobil
@@ -11,8 +12,12 @@ id,uzivatel,datum,url,odkud,oblast,parametry
 0,drahomira,1,google,doma,student,mobil
 5,drahomira,0,yahoo,doma,eduroam,mobil
 2,radoslav,3,google,venku,zamestnanec,mobil
+HACK,drahomira,0,google,doma,eduroam,pc
 2,drahomira,3,yahoo,venku,student,mobil
+HACK,drahomira,4,google,venku,eduroam,pc
 2,drahomira,3,google,doma,zamestnanec,mobil
+HACK,radoslav,0,google,venku,student,pc
+HACK,radoslav,0,yahoo,venku,eduroam,pc
 5,drahomira,1,yahoo,venku,eduroam,mobil
 4,drahomira,3,yahoo,venku,zamestnanec,mobil
 2,radoslav,4,yahoo,doma,student,pc
@@ -20,8 +25,11 @@ id,uzivatel,datum,url,odkud,oblast,parametry
 3,radoslav,0,google,doma,student,mobil
 5,radoslav,4,google,venku,student,pc
 4,radoslav,4,yahoo,venku,eduroam,pc
+HACK,radoslav,2,google,doma,eduroam,pc
 2,radoslav,3,google,doma,student,pc
 2,drahomira,0,yahoo,doma,zamestnanec,pc
+HACK,drahomira,3,google,venku,zamestnanec,mobil
+HACK,radoslav,5,google,doma,student,mobil
 2,radoslav,5,yahoo,doma,zamestnanec,pc
 1,radoslav,4,yahoo,venku,zamestnanec,pc
 5,radoslav,3,yahoo,doma,student,pc
@@ -35,6 +43,7 @@ id,uzivatel,datum,url,odkud,oblast,parametry
 3,drahomira,0,google,doma,student,pc
 4,radoslav,0,google,venku,eduroam,mobil
 1,radoslav,3,google,doma,zamestnanec,mobil
+HACK,drahomira,4,yahoo,venku,zamestnanec,mobil
 4,drahomira,1,google,doma,eduroam,pc
 0,radoslav,5,google,doma,zamestnanec,mobil
 1,radoslav,0,yahoo,doma,eduroam,pc
@@ -49,3 +58,4 @@ id,uzivatel,datum,url,odkud,oblast,parametry
 5,radoslav,0,yahoo,venku,student,pc
 1,radoslav,3,yahoo,doma,student,pc
 3,radoslav,3,google,doma,eduroam,mobil
+HACK,radoslav,0,google,doma,student,pc
