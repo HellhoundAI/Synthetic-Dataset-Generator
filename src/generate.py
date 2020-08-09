@@ -18,7 +18,7 @@ def generate():
     text = text + str(choice(url)) + separator
     text = text + str(choice(odkud)) + separator
     text = text + str(choice(oblast)) + separator
-    text = text + str(choice(parametry))
+    text = text + str(choice(parametry)) + "\n"
 
 
     return text

@@ -1,10 +1,10 @@
 from src.generate import generate, generate_a_file, generate_with_file
 
 while True:
-    cmd = input("Available commands: 'g' for generate, 'gg' for generate in a file, 'o' to generate an output file, 'q' for quit.\n")
+    cmd = input("Available commands: 'g' for generate, 'gg' for generate in a file, 'o' to generate an output file, 'h' for help, 'q' for quit.\n")
 
     if cmd == "g":
-        print(generate())
+        print(generate(), end='')
 
     elif cmd == "gg":
         filename = input("Type in the filename:\n")
@@ -29,4 +29,4 @@ while True:
         break
 
     else:
-        print("wrong command")
+        print("Wrong command. Type 'h' for help.")
