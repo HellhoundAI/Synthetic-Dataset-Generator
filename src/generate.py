@@ -1,5 +1,6 @@
 from random import choice, randint
 import json
+import pandas as pd
 
 loaded = False
 
@@ -18,6 +19,21 @@ def save_data(filename):
     else:
         with open(filename, mode="w", encoding="utf-8") as f:
             json.dump(data, f)
+
+def learn_data(filename):
+    # pridat parametr jestli je prvni radek nazev sloupcu, jako u generate with file
+    global data, loaded
+
+    df = pd.read_csv(filename)
+    data['id'] = df['id']
+    data['uzivatel'] = df['uzivatel']
+    data['datum'] = df['datum']
+    data['url'] = df['url']
+    data['odkud'] = df['odkud']
+    data['oblast'] = df['oblast']
+    data['parametry'] = df['parametry']
+
+    loaded = True
 
 def generate(testing=False):
     if loaded is False:
