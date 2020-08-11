@@ -1,4 +1,4 @@
-from src.generate import generate, generate_a_file, generate_with_file
+from src.generate import generate, generate_a_file, generate_with_file, save_data, load_data
 
 print("Available commands: 'g' for generate, 'gg' for generate in a file, 'o' to generate an output file, 'h' for help, 'q' for quit.\n")
 
@@ -6,7 +6,23 @@ while True:
     cmd = input(">")
 
     if cmd == "g":
-        print(generate(), end='')
+        text = generate()
+        if text is not None:
+            print(text, end='')
+
+    elif cmd == "l":
+        filename = input("Type in the filename:\n")
+        load_data(filename)
+        print("Done.")
+
+    elif cmd == "ll":
+        print("learn")
+
+    elif cmd == "s":
+        filename = input("Type in the filename:\n")
+        save_data(filename)
+        print("Done.")
+
 
     elif cmd == "gg":
         filename = input("Type in the filename:\n")

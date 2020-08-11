@@ -1,14 +1,29 @@
 from random import choice, randint
+import json
 
-id = [0, 1, 2, 3, 4, 5]
-uzivatel = ["drahomira", "radoslav"]
-datum = [0, 1, 2, 3, 4, 5]
-url = ["google", "yahoo"]
-odkud = ["doma", "venku"]
-oblast = ["zamestnanec", "student", "eduroam"]
-parametry = ["mobil", "pc"]
+loaded = False
+
+data = {}
+
+def load_data(filename):
+    global data, loaded
+    with open(filename, mode="r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    loaded = True
+
+def save_data(filename):
+    if loaded is False:
+        print("First the data must be loaded.")
+    else:
+        with open(filename, mode="w", encoding="utf-8") as f:
+            json.dump(data, f)
 
 def generate(testing=False):
+    if loaded is False:
+        print("First the data must be loaded.")
+        return
+
     text = ""
     separator = ","
 
@@ -16,19 +31,25 @@ def generate(testing=False):
     if testing is True:
         text = text + "HACK" + separator
     else:
-        text = text + str(choice(id)) + separator
+        text = text + str(choice(data['id'])) + separator
 
-    text = text + str(choice(uzivatel)) + separator
-    text = text + str(choice(datum)) + separator
-    text = text + str(choice(url)) + separator
-    text = text + str(choice(odkud)) + separator
-    text = text + str(choice(oblast)) + separator
-    text = text + str(choice(parametry)) + "\n"
+    text = text + str(choice(data['uzivatel'])) + separator
+    text = text + str(choice(data['datum'])) + separator
+    text = text + str(choice(data['url'])) + separator
+    text = text + str(choice(data['odkud'])) + separator
+    text = text + str(choice(data['oblast'])) + separator
+    # tady lze pridat cyklus pokud bude potreba vic parametru
+    # take to lze pridat jako parametr funkce
+    text = text + str(choice(data['parametry'])) + "\n"
 
 
     return text
 
 def generate_a_file(filename, n_of_lines):
+    if loaded is False:
+        print("First the data must be loaded.")
+        return
+
     with open(filename, mode="w", encoding="utf-8") as f:
         print("id,uzivatel,datum,url,odkud,oblast,parametry", file=f)
 
@@ -38,6 +59,10 @@ def generate_a_file(filename, n_of_lines):
             n = n + 1
 
 def generate_with_file(filename, n_of_attacks, testing=False):
+    if loaded is False:
+        print("First the data must be loaded.")
+        return
+
     f = open(filename, "r")
     contents = f.readlines()
     f.close()
