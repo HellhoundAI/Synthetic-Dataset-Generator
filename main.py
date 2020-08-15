@@ -1,7 +1,13 @@
 from src.generate import generate, generate_a_file, generate_with_file, save_data, load_data, learn_data
 
-print("Available commands: 'g', 'gg', 'l', 'll', 's', 'o'. Write 'h' for help, 'q' for quit.\n")
+try:
+    print("Loading default attack data.")
+    load_data("data/data.json")
+    print("OK.")
+except:
+    print("Default attack data not found. You have to first use the 'l' or 'll' command to use the program. Refer to help by typing 'h'.")
 
+print("Available commands: 'g', 'gg', 'l', 'll', 's', 'o'. Write 'h' for help, 'q' for quit.\n")
 while True:
     cmd = input(">")
 
