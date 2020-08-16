@@ -99,3 +99,42 @@ def generate_with_file(filename, n_of_attacks, testing=False):
     f = open(filename, "w")
     f.writelines(contents)
     f.close()
+
+def generate_with_files(attack_file, log_file, n_of_attacks):
+    f_in = open(attack_file, "r")
+    attack = f_in.readlines()
+    # nasledujici radka je nutna k tomu, aby zaznam po utoku byl spravne na novem radku
+    attack[-1] = attack[-1] + "\n"
+
+    f_out = open(log_file, "r")
+    contents = f_out.readlines()
+    f_out.close()
+
+    # horni mez musi byt prizpusobena nejen velikosti log file, ale i poctu a velikosti utoku, ktery se bude vkladat
+    indices = list(range(0, len(contents) + (n_of_attacks * len(attack))))
+    
+
+    n = 0
+    while n < int(n_of_attacks):
+        index = randint(1, len(contents))
+        print(indices)
+
+        # nechceme, aby utok byl vlozen doprostred jineho utoku. nahodny index musi byt vybran jen z dostupnych indexu
+        while index not in indices:
+            print("checking index " + str(index))
+            index = randint(1, len(contents))
+
+        for attack_line in attack:
+            contents.insert(index, attack_line)
+            # odstranenim indexu z pole dostupnych indexu zamezime tomu, aby se znovu pouzil
+            print("index " + str(index))
+            # nemusime byt 100% dusledni v odstranovani indexu
+            if index in indices:
+                indices.remove(index)
+            index = index + 1
+
+        n = n + 1
+
+    f_out = open(log_file, "w")
+    f_out.writelines(contents)
+    f_out.close()

@@ -1,0 +1,4 @@
+ATTACK1,drahomira,1,google,doma,eduroam,mobil
+ATTACK2,radoslav,3,yahoo,doma,eduroam,pc
+ATTACK3,drahomira,4,yahoo,venku,eduroam,pc
+ATTACK4,radoslav,2,google,venku,zamestnanec,pc
