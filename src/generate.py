@@ -109,10 +109,23 @@ def generate_with_files(attack_file, log_file, n_of_attacks):
     f_out = open(log_file, "r")
     contents = f_out.readlines()
     f_out.close()
+
+    attack_indices = []
     
     n = 0
     while n < int(n_of_attacks):
         index = randint(1, len(contents))
+
+        for attack_index in attack_indices:
+            while index in range(attack_index + 1, attack_index + len(attack) - 1):
+                index = randint(1, len(contents))
+
+            if index < attack_index:
+                index_to_push = attack_indices.index(attack_index)
+                attack_indices[index_to_push] = attack_indices[index_to_push] + len(attack)
+
+        # staci pridat jen 1. index a kontrolovat + len(attack)
+        attack_indices.append(index)
 
         for attack_line in attack:
             contents.insert(index, attack_line)
@@ -123,3 +136,6 @@ def generate_with_files(attack_file, log_file, n_of_attacks):
     f_out = open(log_file, "w")
     f_out.writelines(contents)
     f_out.close()
+
+    # napad
+    # rozdelit log file indexy na n_of_attacks casti, do kazde casti postupne random pridat

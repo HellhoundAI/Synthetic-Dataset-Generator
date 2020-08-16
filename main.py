@@ -42,7 +42,7 @@ while True:
         # log_file = input("Type in the filename of the log file (which will be generated into):\n")
         # n_of_attacks = input("Type in the number of attacks to generate:\n")
         for i in range(1, 6):
-            generate_with_files("test_attack.txt", "test" + str(i) + ".txt", 5)
+            generate_with_files("test_attack.txt", "testt" + str(i) + ".txt", 5)
         print("Done.")
 
     elif cmd == "h":
