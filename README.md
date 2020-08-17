@@ -1,5 +1,6 @@
 # Generator
 ## Examples of usage
+The generator is used by running the __main.py__ file.
 ### Read an attack file and generate it randomly into output file
 - first command 'gg'
 - type in the file with attack (see an example file at test_attack.txt)
