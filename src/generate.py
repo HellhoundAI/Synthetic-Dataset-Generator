@@ -111,21 +111,36 @@ def generate_with_files(attack_file, log_file, n_of_attacks):
     f_out.close()
 
     attack_indices = []
+
+    # problem je ze to musi platit pro vsechny attack_index zaroven, takhle se to muze menit porad dokola
+    # pro prvni attack_index = 5 a len(attack) = 5 se spravne vybere napr 15
+    # to ale zasahuje do druheho attack_index = 14, tak se pri druhem pruchodu cyklu vybere 7
+    # jenze to uz se neoveri oproti prvnimu attack_index = 5
+
+    # sort attack_indices
+    # vygenerovat BAD indexy
+    # pokud je index v BAD indexu, vybrat novy index
+    # nutnost nejak posouvat, pushovat indexy!
+
+    # Note that creating the set with set(my_list) is also O(n), so if you only need to do this once then it isn't any faster to do it this way. If you need to repeatedly check membership though, then this will be O(1) for every lookup after that initial set creation.
     
     n = 0
     while n < int(n_of_attacks):
+        # pokud je novy index mensi nez JAKYKOLIV item z attack_indices, musim nasledujici itemy pushnout
+        # -1 kvuli tomu \n na konci
+        bad_indices = generate_bad_indices(attack_indices, len(attack) - 1)
+
         index = randint(1, len(contents))
 
-        for attack_index in attack_indices:
-            while index in range(attack_index + 1, attack_index + len(attack) - 1):
-                index = randint(1, len(contents))
-
-            if index < attack_index:
-                index_to_push = attack_indices.index(attack_index)
-                attack_indices[index_to_push] = attack_indices[index_to_push] + len(attack)
+        while index in bad_indices:
+            index = randint(1, len(contents))
 
         # staci pridat jen 1. index a kontrolovat + len(attack)
         attack_indices.append(index)
+        
+        attack_indices.sort()
+        # tady musi byt pushovani a sort
+        attack_indices = push_indices(attack_indices, index, len(attack) - 1)
 
         for attack_line in attack:
             contents.insert(index, attack_line)
@@ -139,3 +154,21 @@ def generate_with_files(attack_file, log_file, n_of_attacks):
 
     # napad
     # rozdelit log file indexy na n_of_attacks casti, do kazde casti postupne random pridat
+
+def generate_bad_indices(indices, attack_length):
+    bad_indices = []
+
+    for index in indices:
+        for n in range(1, attack_length):
+            bad_indices.append(index + n)
+
+    return bad_indices
+
+def push_indices(indices, new_index, attack_length):
+    # lze takto menit pole? zevnitr foreach cyklu? vyzkouset v notebook
+    for index in indices:
+        if new_index <= index:
+            index = index + attack_length
+
+    return indices
+
