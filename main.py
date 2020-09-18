@@ -44,7 +44,7 @@ while True:
         # log_file = input("Type in the filename of the log file (which will be generated into):\n")
         # n_of_attacks = input("Type in the number of attacks to generate:\n")
         # generate_with_files(attack_file, log_file, n_of_attacks)
-        for n in range(1, 6):
+        for n in range(1, 11):
             os.remove("test" + str(n) + ".txt")
             shutil.copy("test.txt", "test" + str(n) + ".txt")
             generate_with_files("test_attack.txt", "test" + str(n) + ".txt", 5)

@@ -126,21 +126,25 @@ def generate_with_files(attack_file, log_file, n_of_attacks):
     
     n = 0
     while n < int(n_of_attacks):
-        # pokud je novy index mensi nez JAKYKOLIV item z attack_indices, musim nasledujici itemy pushnout
-        # -1 kvuli tomu \n na konci
-        bad_indices = generate_bad_indices(attack_indices, len(attack) - 1)
+        attack_indices.sort()
+
+        bad_indices = generate_bad_indices(attack_indices, len(attack))
+
+        print(f"attack_indices 1: {attack_indices}")
+        print(f"bad_indices: {bad_indices}")
+        print(f"attack_length: {len(attack)}")
 
         index = randint(1, len(contents))
 
         while index in bad_indices:
             index = randint(1, len(contents))
 
-        # staci pridat jen 1. index a kontrolovat + len(attack)
-        attack_indices.append(index)
+        print(f"index: {index}")
         
-        attack_indices.sort()
-        # tady musi byt pushovani a sort
-        attack_indices = push_indices(attack_indices, index, len(attack) - 1)
+        attack_indices = push_indices(attack_indices, index, len(attack))
+
+        print(f"attack_indices 2: {attack_indices}")
+        print("--------")
 
         for attack_line in attack:
             contents.insert(index, attack_line)
@@ -152,9 +156,6 @@ def generate_with_files(attack_file, log_file, n_of_attacks):
     f_out.writelines(contents)
     f_out.close()
 
-    # napad
-    # rozdelit log file indexy na n_of_attacks casti, do kazde casti postupne random pridat
-
 def generate_bad_indices(indices, attack_length):
     bad_indices = []
 
@@ -165,10 +166,10 @@ def generate_bad_indices(indices, attack_length):
     return bad_indices
 
 def push_indices(indices, new_index, attack_length):
-    # lze takto menit pole? zevnitr foreach cyklu? vyzkouset v notebook
     for index in indices:
         if new_index <= index:
-            index = index + attack_length
+            index_to_push = indices.index(index)
+            indices[index_to_push] = indices[index_to_push] + attack_length
 
+    indices.append(new_index)
     return indices
-
