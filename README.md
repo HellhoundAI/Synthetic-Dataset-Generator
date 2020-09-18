@@ -1,18 +1,14 @@
 # Generator
-## Examples of usage
-The generator is used by running the __main.py__ file.
-### Read an attack file and generate it randomly into output file
-- first command 'gg'
-- type in the file with attack (see an example file at test_attack.txt)
-- type in the file to generate into (see an example file at test.txt)
-- type in the number of attacks to generate (recommended number 1-10)
+The generator is used by running the __start.py__ file with system arguments.
 
-### Learn attacks from a file and generate it randomly into output file
-- first command 'll'
-- type in the file you want to learn from (example test_attack.txt)
-- you can now test if it worked properly by inputting command 't' as test
-- second command 'g'
-- type in the file to generate into (example test.txt)
-- type in the number of attacks to generate 
+```
+usage: start.py [-h] attack_file output_file number_of_attacks
 
-You can manually change the JSON generation data at data/data.json. Or you can load another JSON database with the command 'l', then you can save it with the command 's'.
+positional arguments:
+  attack_file        The text file where attack is stored.
+  output_file        The text file in which attacks should be generated.
+  number_of_attacks  How many attacks should be generated.
+
+optional arguments:
+  -h, --help         show this help message and exit
+```
