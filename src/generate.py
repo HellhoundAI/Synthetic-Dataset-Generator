@@ -12,16 +12,7 @@ def generate_with_files(attack_file, log_file, n_of_attacks):
 
     attack_indices = []
 
-    # problem je ze to musi platit pro vsechny attack_index zaroven, takhle se to muze menit porad dokola
-    # pro prvni attack_index = 5 a len(attack) = 5 se spravne vybere napr 15
-    # to ale zasahuje do druheho attack_index = 14, tak se pri druhem pruchodu cyklu vybere 7
-    # jenze to uz se neoveri oproti prvnimu attack_index = 5
-
-    # sort attack_indices
-    # vygenerovat BAD indexy
-    # pokud je index v BAD indexu, vybrat novy index
-    # nutnost nejak posouvat, pushovat indexy!
-
+    # asymptoticka slozitost hledani prvku v SET je nizsi, nez hledani v poli:
     # Note that creating the set with set(my_list) is also O(n), so if you only need to do this once then it isn't any faster to do it this way. If you need to repeatedly check membership though, then this will be O(1) for every lookup after that initial set creation.
     
     n = 0
