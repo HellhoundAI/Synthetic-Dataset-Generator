@@ -14,7 +14,7 @@ def generate_with_files(attack_file, log_file, n_of_attacks):
 
     # asymptoticka slozitost hledani prvku v SET je nizsi, nez hledani v poli:
     # Note that creating the set with set(my_list) is also O(n), so if you only need to do this once then it isn't any faster to do it this way. If you need to repeatedly check membership though, then this will be O(1) for every lookup after that initial set creation.
-    
+    # pro dalsi zrychleni hledani je tedy mozne misto pole u bad_indices pouzit set (teoreticky i u attack_indices, i kdyz tam se tolik nehleda)
     n = 0
     while n < int(n_of_attacks):
         attack_indices.sort()
