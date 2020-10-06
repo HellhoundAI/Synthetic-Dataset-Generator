@@ -12,7 +12,8 @@ def generate_to_files(attack_file, log_file, n_of_attacks, n_of_weeks):
 
     _n_of_attacks = n_of_attacks / n_of_weeks   # work in progress
     output_files = []
-    week = 0
+    # week se rovna 1 protoze ten prvni tyden uz mame z output_file
+    week = 1
     while week < int(n_of_weeks):
         output_files.append(generate_to_file(attack_file, log_file, _n_of_attacks))
 
