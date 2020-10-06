@@ -1,11 +1,30 @@
 from random import choice, randint
 
-def generate_with_files(attack_file, log_file, n_of_attacks):
+def count_last_user_action():
+    pass
+
+# udelat wrapper funkci a volat generate with files poctem n_of_weeks
+# potom v te wrapper slozit soubory dohromady
+# rozdelit nejak to celkove cislo n_of_attacks deleno n_of_weeks (nemelo by to byt uplne presne rozdelene)
+# ohledne toho se zeptat jestli muze byt prvni tyden 500 a zbyvajici 3 tydny 0 utoku
+
+def generate_to_files(attack_file, log_file, n_of_attacks, n_of_weeks):
+
+    _n_of_attacks = n_of_attacks / n_of_weeks   # work in progress
+    output_files = []
+    week = 0
+    while week < int(n_of_weeks):
+        output_files.append(generate_to_file(attack_file, log_file, _n_of_attacks))
+
+    # je nutne nejak precist ten vysledny soubor a do generate_to_file() davat jeho kopii?
+
+def generate_to_file(attack_file, log_file, n_of_attacks):
     f_in = open(attack_file, "r")
     attack = f_in.readlines()
     # nasledujici radka je nutna k tomu, aby zaznam po utoku byl spravne na novem radku
     attack[-1] = attack[-1] + "\n"
 
+    # tady musim nejak vytvaret temporary files, ne primo cist ten vysledny
     f_out = open(log_file, "r")
     contents = f_out.readlines()
     f_out.close()
@@ -46,6 +65,8 @@ def generate_with_files(attack_file, log_file, n_of_attacks):
     f_out = open(log_file, "w")
     f_out.writelines(contents)
     f_out.close()
+
+    return log_file 
 
 def generate_bad_indices(indices, attack_length):
     bad_indices = []
