@@ -4,8 +4,28 @@ import os
 def count_last_user_action():
     pass
 
-# extra fast (binary) check of last line in file
+
 def check_file_format(file):
+    status = 0
+    if _is_last_line_empty(file):
+        status = status + 1
+    
+    if _is_first_line_header(file):
+        status = status + 2
+
+    if status == 0:
+        pass
+    elif status == 1:
+        pass
+    elif status == 2:
+        pass
+    elif status == 3:
+        pass
+
+
+# extra fast (binary) check of last line in file
+# might not work on windows (need testing)
+def _is_last_line_empty(file):
     with open(file, 'rb') as f:
         f.seek(-2, os.SEEK_END)
 
@@ -13,12 +33,24 @@ def check_file_format(file):
             f.seek(-2, os.SEEK_CUR)
         
         last_line = f.readline().decode()
-        print(last_line)
-        if last_line in ['\n', '\r\n']:
-            print("last line is empty")
-        else:
-            print("last line is not empty")
+        print(repr(last_line))
 
+        if last_line[-1] == '\n':
+            return True
+        else:
+            return False
+
+
+def _is_first_line_header(file):
+    with open(file, 'r') as f:
+        for line in f:
+            #
+            #   ZDE SE ZADAVA SPECIFICKY VZHLED PRVNIHO RADKU
+            #
+            if line == "id,uzivatel,datum,url,odkud,oblast,parametry":
+                return True
+            else:
+                return False
 
 # rozdelit nejak to celkove cislo n_of_attacks deleno n_of_weeks (nemelo by to byt uplne presne rozdelene)
 # ohledne toho se zeptat jestli muze byt prvni tyden 500 a zbyvajici 3 tydny 0 utoku

@@ -32,6 +32,8 @@ print(f"Checking the file format of {args.log_file} ...")
 
 check_file_format(args.log_file)
 
+# ??? vyzkouset na windows txt files?
+
 # print(f"Generating {args.number_of_attacks} attacks into a file {args.log_file} from an attack file {args.attack_file}. The output log file will represent {args.number_of_weeks} weeks of data.")
 
 # check if last line of log file is '\n'
