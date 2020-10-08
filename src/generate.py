@@ -1,23 +1,48 @@
 from random import choice, randint
+import os
 
 def count_last_user_action():
     pass
 
-# udelat wrapper funkci a volat generate with files poctem n_of_weeks
-# potom v te wrapper slozit soubory dohromady
+# extra fast (binary) check of last line in file
+def check_file_format(file):
+    with open(file, 'rb') as f:
+        f.seek(-2, os.SEEK_END)
+
+        while f.read(1) != b'\n':
+            f.seek(-2, os.SEEK_CUR)
+        
+        last_line = f.readline().decode()
+        print(last_line)
+        if last_line in ['\n', '\r\n']:
+            print("last line is empty")
+        else:
+            print("last line is not empty")
+
+
 # rozdelit nejak to celkove cislo n_of_attacks deleno n_of_weeks (nemelo by to byt uplne presne rozdelene)
 # ohledne toho se zeptat jestli muze byt prvni tyden 500 a zbyvajici 3 tydny 0 utoku
 
 def generate_to_files(attack_file, log_file, n_of_attacks, n_of_weeks):
 
     _n_of_attacks = n_of_attacks / n_of_weeks   # work in progress
+    _n_of_attacks = int(_n_of_attacks)
     output_files = []
-    # week se rovna 1 protoze ten prvni tyden uz mame z output_file
-    week = 1
+
+    week = 0
     while week < int(n_of_weeks):
         output_files.append(generate_to_file(attack_file, log_file, _n_of_attacks))
 
-    # je nutne nejak precist ten vysledny soubor a do generate_to_file() davat jeho kopii?
+    with open(log_file, 'w') as f_out:
+        for f_name in output_files:
+            with open(f_name) as f_in:
+                for line_n, line in enumerate(f_in):
+                    # nasledujici radka zajisti, ze prvni radek souboru (nazvy sloupcu) se nebere v potaz
+                    if line_n == 0:
+                        continue
+
+                    # je NUTNE aby soubory koncily s 1 prazdnou radkou
+                    f_out.write(line)
 
 def generate_to_file(attack_file, log_file, n_of_attacks):
     f_in = open(attack_file, "r")
