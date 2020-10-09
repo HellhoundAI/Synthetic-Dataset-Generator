@@ -1,3 +1,4 @@
+id,uzivatel,datum,url,odkud,oblast,parametry
 ATTACK1,drahomira,1,google,doma,eduroam,mobil
 ATTACK2,radoslav,3,yahoo,doma,eduroam,pc
 ATTACK3,drahomira,4,yahoo,venku,eduroam,pc

@@ -14,13 +14,13 @@ def check_file_format(file):
         status = status + 2
 
     if status == 0:
-        pass
+        print("First line of file is not a correct format of column names (id,uzivatel,datum,url,odkud,oblast,parametry\\n).\nPenultimate line must end with a newline character, i.e. last line must be empty.")
     elif status == 1:
-        pass
+        print("First line of file is not a correct format of column names (id,uzivatel,datum,url,odkud,oblast,parametry\\n).")
     elif status == 2:
-        pass
+        print("Penultimate line must end with a newline character, i.e. last line must be empty.")
     elif status == 3:
-        pass
+        return True
 
 
 # extra fast (binary) check of last line in file
@@ -33,7 +33,7 @@ def _is_last_line_empty(file):
             f.seek(-2, os.SEEK_CUR)
         
         last_line = f.readline().decode()
-        print(repr(last_line))
+        # print(repr(last_line))
 
         if last_line[-1] == '\n':
             return True
@@ -45,9 +45,9 @@ def _is_first_line_header(file):
     with open(file, 'r') as f:
         for line in f:
             #
-            #   ZDE SE ZADAVA SPECIFICKY VZHLED PRVNIHO RADKU
+            #   ZDE SE ZADAVA SPECIFICKY VZHLED PRVNIHO RADKU (a ValueError v check_file_format())
             #
-            if line == "id,uzivatel,datum,url,odkud,oblast,parametry":
+            if line == "id,uzivatel,datum,url,odkud,oblast,parametry\n":
                 return True
             else:
                 return False
@@ -55,17 +55,22 @@ def _is_first_line_header(file):
 # rozdelit nejak to celkove cislo n_of_attacks deleno n_of_weeks (nemelo by to byt uplne presne rozdelene)
 # ohledne toho se zeptat jestli muze byt prvni tyden 500 a zbyvajici 3 tydny 0 utoku
 
-def generate_to_files(attack_file, log_file, n_of_attacks, n_of_weeks):
+def generate_to_files(attack_file, log_file, output_file, n_of_attacks, n_of_weeks):
+
+    ## PREPISUJU TADY LOG FILE POKAZDE
+    ## nutne delat nejak temp files s generate_to_file
 
     _n_of_attacks = n_of_attacks / n_of_weeks   # work in progress
     _n_of_attacks = int(_n_of_attacks)
+    # print(_n_of_attacks)
     output_files = []
 
     week = 0
-    while week < int(n_of_weeks):
+    while week < int(n_of_weeks): 
         output_files.append(generate_to_file(attack_file, log_file, _n_of_attacks))
+        week = week + 1
 
-    with open(log_file, 'w') as f_out:
+    with open(output_file, 'w') as f_out:
         for f_name in output_files:
             with open(f_name) as f_in:
                 for line_n, line in enumerate(f_in):
@@ -79,8 +84,11 @@ def generate_to_files(attack_file, log_file, n_of_attacks, n_of_weeks):
 def generate_to_file(attack_file, log_file, n_of_attacks):
     f_in = open(attack_file, "r")
     attack = f_in.readlines()
+    # nasledujici radka odstrani prvni radek z attack file (nazvy sloupcu)
+    attack.pop(0)
     # nasledujici radka je nutna k tomu, aby zaznam po utoku byl spravne na novem radku
-    attack[-1] = attack[-1] + "\n"
+    # OBSOLETE s checkovanim file formatu
+    # attack[-1] = attack[-1] + "\n"
 
     # tady musim nejak vytvaret temporary files, ne primo cist ten vysledny
     f_out = open(log_file, "r")
