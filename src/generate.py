@@ -55,33 +55,38 @@ def _is_first_line_header(file):
 # rozdelit nejak to celkove cislo n_of_attacks deleno n_of_weeks (nemelo by to byt uplne presne rozdelene)
 # ohledne toho se zeptat jestli muze byt prvni tyden 500 a zbyvajici 3 tydny 0 utoku
 
-def generate_to_files(attack_file, log_file, output_file, n_of_attacks, n_of_weeks):
-
-    ## PREPISUJU TADY LOG FILE POKAZDE
-    ## nutne delat nejak temp files s generate_to_file
+def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_weeks):
 
     _n_of_attacks = n_of_attacks / n_of_weeks   # work in progress
     _n_of_attacks = int(_n_of_attacks)
-    # print(_n_of_attacks)
-    output_files = []
+    out_files = []
 
     week = 0
     while week < int(n_of_weeks): 
-        output_files.append(generate_to_file(attack_file, log_file, _n_of_attacks))
+        out_files.append(generate_to_file(attack_file, log_file, out_file + str(week), _n_of_attacks))
         week = week + 1
 
-    with open(output_file, 'w') as f_out:
-        for f_name in output_files:
+    # we want to join the temporary output files after creating them in the previous while cycle
+    column_names_written = False
+    with open(out_file, 'w') as f_out:
+        for f_name in out_files:
             with open(f_name) as f_in:
                 for line_n, line in enumerate(f_in):
                     # nasledujici radka zajisti, ze prvni radek souboru (nazvy sloupcu) se nebere v potaz
                     if line_n == 0:
-                        continue
+                        if column_names_written:
+                            continue
+                        else:
+                            column_names_written = True
 
                     # je NUTNE aby soubory koncily s 1 prazdnou radkou
                     f_out.write(line)
 
-def generate_to_file(attack_file, log_file, n_of_attacks):
+    # we need to remove the temporary output files after joining them
+    for file in out_files:
+        os.remove(file)
+
+def generate_to_file(attack_file, log_file, out_file, n_of_attacks):
     f_in = open(attack_file, "r")
     attack = f_in.readlines()
     # nasledujici radka odstrani prvni radek z attack file (nazvy sloupcu)
@@ -90,10 +95,9 @@ def generate_to_file(attack_file, log_file, n_of_attacks):
     # OBSOLETE s checkovanim file formatu
     # attack[-1] = attack[-1] + "\n"
 
-    # tady musim nejak vytvaret temporary files, ne primo cist ten vysledny
-    f_out = open(log_file, "r")
-    contents = f_out.readlines()
-    f_out.close()
+    f_log = open(log_file, "r")
+    contents = f_log.readlines()
+    f_log.close()
 
     attack_indices = []
 
@@ -106,21 +110,11 @@ def generate_to_file(attack_file, log_file, n_of_attacks):
 
         bad_indices = generate_bad_indices(attack_indices, len(attack))
 
-        # print(f"attack_indices 1: {attack_indices}")
-        # print(f"bad_indices: {bad_indices}")
-        # print(f"attack_length: {len(attack)}")
-
         index = randint(1, len(contents))
-
         while index in bad_indices:
             index = randint(1, len(contents))
-
-        # print(f"index: {index}")
         
         attack_indices = push_indices(attack_indices, index, len(attack))
-
-        # print(f"attack_indices 2: {attack_indices}")
-        # print("--------")
 
         for attack_line in attack:
             contents.insert(index, attack_line)
@@ -128,11 +122,11 @@ def generate_to_file(attack_file, log_file, n_of_attacks):
 
         n = n + 1
 
-    f_out = open(log_file, "w")
+    f_out = open(out_file, "w")
     f_out.writelines(contents)
     f_out.close()
 
-    return log_file 
+    return out_file
 
 def generate_bad_indices(indices, attack_length):
     bad_indices = []

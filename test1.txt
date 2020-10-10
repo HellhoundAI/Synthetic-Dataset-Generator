@@ -1,5 +1,0 @@
-id,uzivatel,datum,url,odkud,oblast,parametry
-TEST1,drahomira,1,google,doma,eduroam,mobil
-TEST1,drahomira,1,google,doma,eduroam,mobil
-TEST1,drahomira,1,google,doma,eduroam,mobil
-TEST1,drahomira,2,google,doma,eduroam,mobil

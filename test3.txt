@@ -1,3 +1,0 @@
-id,uzivatel,datum,url,odkud,oblast,parametry
-TEST3,drahomira,1,google,doma,eduroam,mobil
-TEST3,drahomira,1,google,doma,eduroam,mobil
