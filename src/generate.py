@@ -52,27 +52,37 @@ def _is_first_line_header(file):
             else:
                 return False
 
-# rozdelit nejak to celkove cislo n_of_attacks deleno n_of_weeks (nemelo by to byt uplne presne rozdelene)
-# ohledne toho se zeptat jestli muze byt prvni tyden 500 a zbyvajici 3 tydny 0 utoku
 
 def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_weeks):
-
-    _n_of_attacks = n_of_attacks / n_of_weeks   # work in progress
-    _n_of_attacks = int(_n_of_attacks)
-    out_files = []
+    tmp_files = []
 
     week = 0
     while week < int(n_of_weeks): 
-        out_files.append(generate_to_file(attack_file, log_file, out_file + str(week), _n_of_attacks))
+        # check pro posledni prubeh cyklu
+        if week + 1 == n_of_weeks:
+            _n_of_attacks = n_of_attacks
+        else:
+            _n_of_attacks = randint(0, n_of_attacks)
+            n_of_attacks = n_of_attacks - _n_of_attacks
+     
+        tmp_files.append(generate_to_file(attack_file, log_file, out_file + str(week), _n_of_attacks))
         week = week + 1
 
     # we want to join the temporary output files after creating them in the previous while cycle
+    # asi lze pridat return value a exception pokud tu bude fail
+    join_tmp_files(tmp_files, out_file)
+
+    # we need to remove the temporary output files after joining them
+    remove_tmp_files(tmp_files)
+
+
+def join_tmp_files(tmp_files_list, out_file):
     column_names_written = False
     with open(out_file, 'w') as f_out:
-        for f_name in out_files:
+        for f_name in tmp_files_list:
             with open(f_name) as f_in:
                 for line_n, line in enumerate(f_in):
-                    # nasledujici radka zajisti, ze prvni radek souboru (nazvy sloupcu) se nebere v potaz
+                    # nasledujici radka zajisti, ze prvni radek souboru (nazvy sloupcu) se nebere v potaz, krome uplne prvniho
                     if line_n == 0:
                         if column_names_written:
                             continue
@@ -82,9 +92,11 @@ def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_weeks)
                     # je NUTNE aby soubory koncily s 1 prazdnou radkou
                     f_out.write(line)
 
-    # we need to remove the temporary output files after joining them
-    for file in out_files:
+
+def remove_tmp_files(tmp_files_list):
+    for file in tmp_files_list:
         os.remove(file)
+
 
 def generate_to_file(attack_file, log_file, out_file, n_of_attacks):
     f_in = open(attack_file, "r")
@@ -128,6 +140,7 @@ def generate_to_file(attack_file, log_file, out_file, n_of_attacks):
 
     return out_file
 
+
 def generate_bad_indices(indices, attack_length):
     bad_indices = []
 
@@ -136,6 +149,7 @@ def generate_bad_indices(indices, attack_length):
             bad_indices.append(index + n)
 
     return bad_indices
+
 
 def push_indices(indices, new_index, attack_length):
     for index in indices:
