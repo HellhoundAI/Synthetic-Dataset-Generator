@@ -45,7 +45,7 @@ def _is_first_line_header(file):
     with open(file, 'r') as f:
         for line in f:
             #
-            #   ZDE SE ZADAVA SPECIFICKY VZHLED PRVNIHO RADKU (a ValueError v check_file_format())
+            #   ZDE SE ZADAVA SPECIFICKY VZHLED PRVNIHO RADKU (a v check_file_format())
             #
             if line == "id,uzivatel,datum,url,odkud,oblast,parametry\n":
                 return True
