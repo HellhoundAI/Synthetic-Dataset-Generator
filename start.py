@@ -1,4 +1,4 @@
-from src.generate import generate_to_files, check_file_format
+from src.generate import generate_to_files, check_file_format, count_time_between_actions
 import argparse
 import os
 
@@ -42,12 +42,15 @@ else:
 
 # ??? vyzkouset na windows txt files?
 
-print(f"Generating {args.number_of_attacks} attacks from {args.attack_file} into network logs from {args.log_file}. The output log file {args.out_file} will represent {args.number_of_weeks} weeks of data.")
+print(f"Generating {args.number_of_attacks} attacks from {args.attack_file} into network logs from {args.log_file} ...\nThe output log file {args.out_file} will represent {args.number_of_weeks} weeks of data.")
 generate_to_files(args.attack_file, args.log_file, args.out_file, args.number_of_attacks, args.number_of_weeks)
+print("Finished generating attacks!\n")
 
-# count_last_user_action() neco takoveho
+print(f"Calculating time between user actions for {args.out_file} ...")
+count_time_between_actions(args.out_file)
+print("Finished calculating!\n")
 
 ##### IMPORTANT
 # upravit dokumentaci
 
-print("Done!\n")
+print("All done!\n")

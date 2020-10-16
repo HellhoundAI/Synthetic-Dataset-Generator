@@ -5,12 +5,10 @@ id,uzivatel,datum,url,odkud,oblast,parametry
 1,radoslav,3,google,venku,zamestnanec,pc
 5,drahomira,4,yahoo,doma,student,mobil
 0,radoslav,5,yahoo,doma,student,mobil
-4,drahomira,5,google,doma,eduroam,mobil
-1,radoslav,5,google,venku,zamestnanec,pc
-4,radoslav,6,yahoo,venku,student,pc
-0,drahomira,7,google,doma,student,mobil
-3,drahomira,8,yahoo,venku,student,pc
-5,radoslav,9,yahoo,doma,student,pc
+4,drahomira,6,google,doma,eduroam,mobil
+1,radoslav,7,google,venku,zamestnanec,pc
+4,radoslav,8,yahoo,venku,student,pc
+0,drahomira,9,google,doma,student,mobil
 5,drahomira,10,yahoo,doma,eduroam,mobil
 2,radoslav,11,google,venku,zamestnanec,mobil
 2,drahomira,12,yahoo,venku,student,mobil

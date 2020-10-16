@@ -1,8 +1,56 @@
 from random import choice, randint
 import os
 
-def count_last_user_action():
-    pass
+def count_time_between_actions(file):
+    actions = _get_times_between_actions(file)
+    _write_times_between_actions(file, actions)
+
+
+def _get_times_between_actions(file):
+    # dict s uzivatelskymi jmeny a casy posledni nalezene akce
+    users = {}
+    # pole s casy od poslednich akci pro kazdy radek (ne pro usernames)
+    actions = []
+    with open(file, "r") as f_in:
+        for line_n, line in enumerate(f_in):
+            if line_n == 0:
+                # prvni radek nazev sloupce
+                actions.append("last_action")
+                continue
+
+            line_list = line.split(",")
+            user = line_list[1]
+            time = int(line_list[2])
+
+            if user in users:
+                last_action = time - users[user]
+                actions.append(last_action)
+                # aktualizace casu posledni nalezene akce v dict
+                users[user] = time
+            else:
+                # prvni pripad s timto username, cas od posledni akce je tedy 0
+                actions.append(0)
+                users[user] = time
+
+    return actions
+
+
+def _write_times_between_actions(file, actions):
+    f_in = open(file, "r")
+    contents = f_in.readlines()
+    f_in.close()
+
+    contents_modified = []
+
+    for line_n, line in enumerate(contents):
+        # vim vzdycky ze line[-1] bude \n (kvuli file format check)
+        line_mod = line[0:-1] + "," + str(actions[line_n]) + "\n"
+        contents_modified.append(line_mod)
+
+
+    f_out = open(file, "w")
+    f_out.writelines(contents_modified)
+    f_out.close()
 
 
 def check_file_format(file):
@@ -65,18 +113,18 @@ def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_weeks)
             _n_of_attacks = randint(0, n_of_attacks)
             n_of_attacks = n_of_attacks - _n_of_attacks
      
-        tmp_files.append(generate_to_file(attack_file, log_file, out_file + str(week), _n_of_attacks))
+        tmp_files.append(_generate_to_file(attack_file, log_file, out_file + str(week), _n_of_attacks))
         week = week + 1
 
     # we want to join the temporary output files after creating them in the previous while cycle
     # asi lze pridat return value a exception pokud tu bude fail
-    join_tmp_files(tmp_files, out_file)
+    _join_tmp_files(tmp_files, out_file)
 
     # we need to remove the temporary output files after joining them
-    remove_tmp_files(tmp_files)
+    _remove_tmp_files(tmp_files)
 
 
-def join_tmp_files(tmp_files_list, out_file):
+def _join_tmp_files(tmp_files_list, out_file):
     column_names_written = False
     with open(out_file, 'w') as f_out:
         for f_name in tmp_files_list:
@@ -93,12 +141,12 @@ def join_tmp_files(tmp_files_list, out_file):
                     f_out.write(line)
 
 
-def remove_tmp_files(tmp_files_list):
+def _remove_tmp_files(tmp_files_list):
     for file in tmp_files_list:
         os.remove(file)
 
 
-def generate_to_file(attack_file, log_file, out_file, n_of_attacks):
+def _generate_to_file(attack_file, log_file, out_file, n_of_attacks):
     f_in = open(attack_file, "r")
     attack = f_in.readlines()
     # nasledujici radka odstrani prvni radek z attack file (nazvy sloupcu)
@@ -120,19 +168,21 @@ def generate_to_file(attack_file, log_file, out_file, n_of_attacks):
     while n < int(n_of_attacks):
         attack_indices.sort()
 
-        bad_indices = generate_bad_indices(attack_indices, len(attack))
+        bad_indices = _generate_bad_indices(attack_indices, len(attack))
 
         index = randint(1, len(contents))
         while index in bad_indices:
             index = randint(1, len(contents))
         
-        attack_indices = push_indices(attack_indices, index, len(attack))
+        attack_indices = _push_indices(attack_indices, index, len(attack))
 
         for attack_line in attack:
             contents.insert(index, attack_line)
             index = index + 1
 
         n = n + 1
+
+    ### tady nekde musim prepisovat casove znacky
 
     f_out = open(out_file, "w")
     f_out.writelines(contents)
@@ -141,7 +191,7 @@ def generate_to_file(attack_file, log_file, out_file, n_of_attacks):
     return out_file
 
 
-def generate_bad_indices(indices, attack_length):
+def _generate_bad_indices(indices, attack_length):
     bad_indices = []
 
     for index in indices:
@@ -151,7 +201,7 @@ def generate_bad_indices(indices, attack_length):
     return bad_indices
 
 
-def push_indices(indices, new_index, attack_length):
+def _push_indices(indices, new_index, attack_length):
     for index in indices:
         if new_index <= index:
             index_to_push = indices.index(index)

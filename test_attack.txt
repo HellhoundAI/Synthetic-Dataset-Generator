@@ -1,6 +1,6 @@
 id,uzivatel,datum,url,odkud,oblast,parametry
-ATTACK1,drahomira,1,google,doma,eduroam,mobil
-ATTACK2,radoslav,3,yahoo,doma,eduroam,pc
-ATTACK3,drahomira,4,yahoo,venku,eduroam,pc
-ATTACK4,radoslav,2,google,venku,zamestnanec,pc
-ATTACK5,lazar,2,google,venku,zamestnanec,pc
+ATTACK1,utocnik1,5,google,doma,eduroam,mobil
+ATTACK2,utocnik1,6,yahoo,doma,eduroam,pc
+ATTACK3,utocnik2,7,yahoo,venku,eduroam,pc
+ATTACK4,utocnik1,8,google,venku,zamestnanec,pc
+ATTACK5,utocnik2,9,google,venku,zamestnanec,pc
