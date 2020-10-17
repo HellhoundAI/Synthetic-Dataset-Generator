@@ -202,8 +202,10 @@ def _generate_to_file(attack_file, log_file, out_file, n_of_attacks):
 def _get_next_index(list_split, time):
     index_return = -1
     for index, item in enumerate(list_split):
-        if item[CONST.DATUM_IDX] == time:
+        # na index = 0 je nazev sloupce, to by delalo bordel
+        if index != 0 and int(item[CONST.DATUM_IDX]) >= int(time):
             index_return = index
+            break
 
     if index_return == -1:
         # takto zajistime, ze bude vlozeno uplne na konec pole
