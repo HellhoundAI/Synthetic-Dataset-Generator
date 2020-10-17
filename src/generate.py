@@ -1,10 +1,20 @@
 from random import choice, randint
-import os
+import os, copy
+
+class CONST(object):
+    __slots__ = ()
+
+    SEPARATOR = ','
+    #pozor na to pridavani last action sloupce (az se to bude checkovat ve check_file_format)
+    FIRST_LINE = 'id,uzivatel,datum,url,odkud,oblast,parametry'
+    # mozna se pak bude hodit i DATUM_INDEX protoze casto pouzivam [2] u poli
+    DATUM_IDX = 2
+
+CONST = CONST()
 
 def count_time_between_actions(file):
     actions = _get_times_between_actions(file)
     _write_times_between_actions(file, actions)
-
 
 def _get_times_between_actions(file):
     # dict s uzivatelskymi jmeny a casy posledni nalezene akce
@@ -34,7 +44,6 @@ def _get_times_between_actions(file):
 
     return actions
 
-
 def _write_times_between_actions(file, actions):
     f_in = open(file, "r")
     contents = f_in.readlines()
@@ -51,7 +60,6 @@ def _write_times_between_actions(file, actions):
     f_out = open(file, "w")
     f_out.writelines(contents_modified)
     f_out.close()
-
 
 def check_file_format(file):
     status = 0
@@ -70,7 +78,6 @@ def check_file_format(file):
     elif status == 3:
         return True
 
-
 # extra fast (binary) check of last line in file
 # might not work on windows (need testing)
 def _is_last_line_empty(file):
@@ -88,7 +95,6 @@ def _is_last_line_empty(file):
         else:
             return False
 
-
 def _is_first_line_header(file):
     with open(file, 'r') as f:
         for line in f:
@@ -99,7 +105,6 @@ def _is_first_line_header(file):
                 return True
             else:
                 return False
-
 
 def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_weeks):
     tmp_files = []
@@ -123,7 +128,6 @@ def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_weeks)
     # we need to remove the temporary output files after joining them
     _remove_tmp_files(tmp_files)
 
-
 def _join_tmp_files(tmp_files_list, out_file):
     column_names_written = False
     with open(out_file, 'w') as f_out:
@@ -140,72 +144,99 @@ def _join_tmp_files(tmp_files_list, out_file):
                     # je NUTNE aby soubory koncily s 1 prazdnou radkou
                     f_out.write(line)
 
-
 def _remove_tmp_files(tmp_files_list):
     for file in tmp_files_list:
         os.remove(file)
 
-
 def _generate_to_file(attack_file, log_file, out_file, n_of_attacks):
     f_in = open(attack_file, "r")
-    attack = f_in.readlines()
+    attacks = f_in.readlines()
     # nasledujici radka odstrani prvni radek z attack file (nazvy sloupcu)
-    attack.pop(0)
-    # nasledujici radka je nutna k tomu, aby zaznam po utoku byl spravne na novem radku
-    # OBSOLETE s checkovanim file formatu
-    # attack[-1] = attack[-1] + "\n"
+    attacks.pop(0)
 
     f_log = open(log_file, "r")
     contents = f_log.readlines()
     f_log.close()
 
-    attack_indices = []
-
-    # asymptoticka slozitost hledani prvku v SET je nizsi, nez hledani v poli:
-    # Note that creating the set with set(my_list) is also O(n), so if you only need to do this once then it isn't any faster to do it this way. If you need to repeatedly check membership though, then this will be O(1) for every lookup after that initial set creation.
-    # pro dalsi zrychleni hledani je tedy mozne misto pole u bad_indices pouzit set (teoreticky i u attack_indices, i kdyz tam se tolik nehleda)
+    # budeme hodne pristupovat k jednotlivym sloupcum, musime tedy ze stringu udelat pole
+    attacks_split = _split_list(attacks)
+    contents_split = _split_list(contents)
+    # take se bude hodit znat casove rozestupy mezi utoky ve zvlastnim poli
+    attack_intervals = _get_attack_intervals(attacks_split)
     n = 0
+
     while n < int(n_of_attacks):
-        attack_indices.sort()
 
-        bad_indices = _generate_bad_indices(attack_indices, len(attack))
+        index = randint(1, len(contents_split) - 1)
+        time = int(contents_split[index][2])
 
-        index = randint(1, len(contents))
-        while index in bad_indices:
-            index = randint(1, len(contents))
-        
-        attack_indices = _push_indices(attack_indices, index, len(attack))
+        # nechceme prepisovat puvodni attacks_split, pri vice utocich by to delalo bordel
+        attacks_split_clean = copy.deepcopy(attacks_split)
+        # transformace sloupce DATUM u jednotlivych utoku podle vybraneho indexu
+        for attack_n, attack in enumerate(attacks_split_clean):
+            attack[2] = str(time + attack_intervals[attack_n])
+            time = int(attack[2])
 
-        for attack_line in attack:
-            contents.insert(index, attack_line)
-            index = index + 1
+        # vkladani jednotlivych utoku do pole reprezentujici soubor
+        for attack_n, attack in enumerate(attacks_split_clean):
+            if attack_n == 0:
+                pass
+            else:
+                next_index = _get_next_index(contents_split, attack[CONST.DATUM_IDX])
+                index = next_index
+
+            contents_split.insert(index, attack)
 
         n = n + 1
 
-    ### tady nekde musim prepisovat casove znacky
+    # musime rozdeleny soubor zase slozit
+    contents = _join_list(contents_split)
 
     f_out = open(out_file, "w")
     f_out.writelines(contents)
     f_out.close()
 
+    # mozna tu lze vracet i ten nejvetsi posledni timestamp pro dalsi skladani v generate to files
     return out_file
 
+def _get_next_index(list_split, time):
+    index_return = -1
+    for index, item in enumerate(list_split):
+        if item[CONST.DATUM_IDX] == time:
+            index_return = index
 
-def _generate_bad_indices(indices, attack_length):
-    bad_indices = []
+    if index_return == -1:
+        # takto zajistime, ze bude vlozeno uplne na konec pole
+        # nefunguje, pri vice utocich je problem na konci
+        return len(list_split)
+    else:
+        return index_return
 
-    for index in indices:
-        for n in range(1, attack_length):
-            bad_indices.append(index + n)
+def _get_attack_intervals(attacks_split):
+    intervals = []
+    previous_attack = attacks_split[0]
 
-    return bad_indices
+    for attack in attacks_split:
+        intervals.append(int(attack[2]) - int(previous_attack[2]))
+        previous_attack = attack
 
+    return intervals
 
-def _push_indices(indices, new_index, attack_length):
-    for index in indices:
-        if new_index <= index:
-            index_to_push = indices.index(index)
-            indices[index_to_push] = indices[index_to_push] + attack_length
+def _split_list(list_to_split):
+    list_split = []
 
-    indices.append(new_index)
-    return indices
+    for item in list_to_split:
+        list_split.append(item.split(CONST.SEPARATOR))
+
+    return list_split
+
+def _join_list(list_to_join):
+    list_joined = []
+
+    for item in list_to_join:
+        list_joined.append(CONST.SEPARATOR.join(item))
+
+    return list_joined
+
+if __name__ == "__main__":
+    _generate_to_file("test_attack.txt", "test.txt", "test_o.txt", 4)
