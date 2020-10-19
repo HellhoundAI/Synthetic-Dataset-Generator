@@ -36,7 +36,7 @@ The following command will print help.
 ```
 $ python3 start.py -h
 ```
-The next command will generate 20 attacks (in total) taken from the file test_attack.txt into a file test.txt with 4 weeks of network data.
+The next command will generate 20 attacks (in total) taken from the file test_attack.txt into a file test.txt with 4 weeks of network data. The program also counts times between user actions in a separate column 'last_action'.
 
 We assume the log file (test.txt **before** generating) represents 1 week of network data.
 The resulting output log file **after** the generating will represent 4 weeks of network data, with a total of 500 attacks spread between the 4 weeks.
@@ -44,7 +44,7 @@ The resulting output log file **after** the generating will represent 4 weeks of
 $ python3 start.py -af test_attack.txt -lf test.txt -of test_o.txt -a 20 -w 4
 ```
 
-Following command is an example of generating a larger amount of attacks to a larger log file (10k rows):
+Following command is an example of generating a larger amount of attacks to a larger log file (10k rows). Again, the times between user actions will be counted:
 ```
 $ python3 start.py -af test_attack.txt -lf test_long.txt -of test_long_o.txt -a 500 -w 5
 ```

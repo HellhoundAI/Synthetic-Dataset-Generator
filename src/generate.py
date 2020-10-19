@@ -78,7 +78,7 @@ def check_file_format(file):
     elif status == 3:
         return True
 
-def _is_last_line_empty(file):        
+def _is_last_line_empty(file):
     last_line = _get_last_line(file)
 
     if last_line[-1] == '\n':
