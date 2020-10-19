@@ -28,17 +28,17 @@ if args.number_of_weeks <= 0:
     raise ValueError("Number of weeks must be greater than 0!")
 
 
-# print(f"Checking the file format of {args.attack_file} ...")
-# if check_file_format(args.attack_file):
-#     print("OK!\n")
-# else:
-#     exit()
+print(f"Checking the file format of {args.attack_file} ...")
+if check_file_format(args.attack_file):
+    print("OK!\n")
+else:
+    exit()
 
-# print(f"Checking the file format of {args.log_file} ...")
-# if check_file_format(args.log_file):
-#     print("OK!\n")
-# else:
-#     exit()
+print(f"Checking the file format of {args.log_file} ...")
+if check_file_format(args.log_file):
+    print("OK!\n")
+else:
+    exit()
 
 # ??? vyzkouset na windows txt files?
 
@@ -46,9 +46,9 @@ print(f"Generating {args.number_of_attacks} attacks from {args.attack_file} into
 generate_to_files(args.attack_file, args.log_file, args.out_file, args.number_of_attacks, args.number_of_weeks)
 print("Finished generating attacks!\n")
 
-# print(f"Calculating time between user actions for {args.out_file} ...")
-# count_time_between_actions(args.out_file)
-# print("Finished calculating!\n")
+print(f"Calculating time between user actions for {args.out_file} ...")
+count_time_between_actions(args.out_file)
+print("Finished calculating!\n")
 
 
 print("All done!\n")

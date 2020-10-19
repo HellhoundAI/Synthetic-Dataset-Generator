@@ -6,9 +6,10 @@ class CONST(object):
 
     SEPARATOR = ','
     #pozor na to pridavani last action sloupce (az se to bude checkovat ve check_file_format)
-    FIRST_LINE = 'id,uzivatel,datum,url,odkud,oblast,parametry'
+    FIRST_LINE = 'id,uzivatel,datum,url,odkud,oblast,parametry\n'
     # mozna se pak bude hodit i DATUM_INDEX protoze casto pouzivam [2] u poli
     DATUM_IDX = 2
+    UZIVATEL_IDX = 1
 
 CONST = CONST()
 
@@ -28,9 +29,9 @@ def _get_times_between_actions(file):
                 actions.append("last_action")
                 continue
 
-            line_list = line.split(",")
-            user = line_list[1]
-            time = int(line_list[2])
+            line_list = line.split(CONST.SEPARATOR)
+            user = line_list[CONST.UZIVATEL_IDX]
+            time = int(line_list[CONST.DATUM_IDX])
 
             if user in users:
                 last_action = time - users[user]
@@ -53,9 +54,8 @@ def _write_times_between_actions(file, actions):
 
     for line_n, line in enumerate(contents):
         # vim vzdycky ze line[-1] bude \n (kvuli file format check)
-        line_mod = line[0:-1] + "," + str(actions[line_n]) + "\n"
+        line_mod = line[0:-1] + CONST.SEPARATOR + str(actions[line_n]) + "\n"
         contents_modified.append(line_mod)
-
 
     f_out = open(file, "w")
     f_out.writelines(contents_modified)
@@ -104,7 +104,7 @@ def _is_first_line_header(file):
             #
             #   ZDE SE ZADAVA SPECIFICKY VZHLED PRVNIHO RADKU (a v check_file_format())
             #
-            if line == "id,uzivatel,datum,url,odkud,oblast,parametry\n":
+            if line == CONST.FIRST_LINE:
                 return True
             else:
                 return False
@@ -191,14 +191,14 @@ def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
     while n < int(n_of_attacks):
 
         index = randint(1, len(contents_split) - 1)
-        time = int(contents_split[index][2])
+        time = int(contents_split[index][CONST.DATUM_IDX])
 
         # nechceme prepisovat puvodni attacks_split, pri vice utocich by to delalo bordel
         attacks_split_clean = copy.deepcopy(attacks_split)
         # transformace sloupce DATUM u jednotlivych utoku podle vybraneho indexu
         for attack_n, attack in enumerate(attacks_split_clean):
-            attack[2] = str(time + attack_intervals[attack_n])
-            time = int(attack[2])
+            attack[CONST.DATUM_IDX] = str(time + attack_intervals[attack_n])
+            time = int(attack[CONST.DATUM_IDX])
 
         # vkladani jednotlivych utoku do pole reprezentujici soubor
         for attack_n, attack in enumerate(attacks_split_clean):
@@ -260,7 +260,7 @@ def _get_attack_intervals(attacks_split):
     previous_attack = attacks_split[0]
 
     for attack in attacks_split:
-        intervals.append(int(attack[2]) - int(previous_attack[2]))
+        intervals.append(int(attack[CONST.DATUM_IDX]) - int(previous_attack[CONST.DATUM_IDX]))
         previous_attack = attack
 
     return intervals
