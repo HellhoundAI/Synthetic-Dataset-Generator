@@ -280,7 +280,3 @@ def _join_list(list_to_join):
         list_joined.append(CONST.SEPARATOR.join(item))
 
     return list_joined
-
-if __name__ == "__main__":
-    # _generate_to_file("test_attack.txt", "test.txt", "test_o.txt", 4, -1)
-    generate_to_files("test_attack.txt", "test.txt", "test_o.txt", 10, 4)
