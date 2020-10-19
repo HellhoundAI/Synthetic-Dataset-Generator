@@ -78,22 +78,25 @@ def check_file_format(file):
     elif status == 3:
         return True
 
+def _is_last_line_empty(file):        
+    last_line = _get_last_line(file)
+
+    if last_line[-1] == '\n':
+        return True
+    else:
+        return False
+
 # extra fast (binary) check of last line in file
 # might not work on windows (need testing)
-def _is_last_line_empty(file):
+def _get_last_line(file):
     with open(file, 'rb') as f:
         f.seek(-2, os.SEEK_END)
 
         while f.read(1) != b'\n':
             f.seek(-2, os.SEEK_CUR)
         
-        last_line = f.readline().decode()
-        # print(repr(last_line))
-
-        if last_line[-1] == '\n':
-            return True
-        else:
-            return False
+        # print(repr(f.readline().decode()))
+        return f.readline().decode()
 
 def _is_first_line_header(file):
     with open(file, 'r') as f:
@@ -109,6 +112,7 @@ def _is_first_line_header(file):
 def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_weeks):
     tmp_files = []
 
+    last_time = -1
     week = 0
     while week < int(n_of_weeks): 
         # check pro posledni prubeh cyklu
@@ -117,8 +121,13 @@ def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_weeks)
         else:
             _n_of_attacks = randint(0, n_of_attacks)
             n_of_attacks = n_of_attacks - _n_of_attacks
-     
-        tmp_files.append(_generate_to_file(attack_file, log_file, out_file + str(week), _n_of_attacks))
+
+        tmp_files.append(_generate_to_file(attack_file, log_file, out_file + str(week), _n_of_attacks, last_time))
+
+        if week + 1 == n_of_weeks:
+            pass
+        else:
+            last_time = _get_last_time(tmp_files[week])
         week = week + 1
 
     # we want to join the temporary output files after creating them in the previous while cycle
@@ -127,6 +136,13 @@ def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_weeks)
 
     # we need to remove the temporary output files after joining them
     _remove_tmp_files(tmp_files)
+
+def _get_last_time(file):
+    last_line = _get_last_line(file)
+    last_line_split = last_line.split(CONST.SEPARATOR)
+    # pozor na to jestli vracim string nebo int
+    # tady vracim STRING
+    return last_line_split[CONST.DATUM_IDX]
 
 def _join_tmp_files(tmp_files_list, out_file):
     column_names_written = False
@@ -148,7 +164,7 @@ def _remove_tmp_files(tmp_files_list):
     for file in tmp_files_list:
         os.remove(file)
 
-def _generate_to_file(attack_file, log_file, out_file, n_of_attacks):
+def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
     f_in = open(attack_file, "r")
     attacks = f_in.readlines()
     # nasledujici radka odstrani prvni radek z attack file (nazvy sloupcu)
@@ -160,7 +176,14 @@ def _generate_to_file(attack_file, log_file, out_file, n_of_attacks):
 
     # budeme hodne pristupovat k jednotlivym sloupcum, musime tedy ze stringu udelat pole
     attacks_split = _split_list(attacks)
-    contents_split = _split_list(contents)
+    _contents_split = _split_list(contents)
+
+    # potrebujeme precislovat DATUM pro spojovani tydnu, ale jen kdyz nejde o prvni soubor
+    if last_time != -1:
+        contents_split = _transform_times(_contents_split, last_time)
+    else:
+        contents_split = _contents_split
+
     # take se bude hodit znat casove rozestupy mezi utoky ve zvlastnim poli
     attack_intervals = _get_attack_intervals(attacks_split)
     n = 0
@@ -198,6 +221,24 @@ def _generate_to_file(attack_file, log_file, out_file, n_of_attacks):
 
     # mozna tu lze vracet i ten nejvetsi posledni timestamp pro dalsi skladani v generate to files
     return out_file
+
+def _transform_times(list_orig, last_time):
+    list_mod = []
+
+    for line_n, line in enumerate(list_orig):
+        if line_n == 0:
+            list_mod.append(line)
+            continue
+
+        current_time = int(line[CONST.DATUM_IDX])
+        if current_time == 0:
+            line[CONST.DATUM_IDX] = str(current_time + int(last_time) + 1)
+        else:
+            line[CONST.DATUM_IDX] = str(current_time + int(last_time))
+
+        list_mod.append(line)
+
+    return list_mod
 
 def _get_next_index(list_split, time):
     index_return = -1
@@ -241,4 +282,5 @@ def _join_list(list_to_join):
     return list_joined
 
 if __name__ == "__main__":
-    _generate_to_file("test_attack.txt", "test.txt", "test_o.txt", 4)
+    # _generate_to_file("test_attack.txt", "test.txt", "test_o.txt", 4, -1)
+    generate_to_files("test_attack.txt", "test.txt", "test_o.txt", 10, 4)
