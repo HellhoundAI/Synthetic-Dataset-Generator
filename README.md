@@ -26,7 +26,7 @@ optional arguments:
 ## Log and attack file format
 The following format must be observed for both the attack file and log file:
 1. The first line must have column names (placeholder = id,uzivatel,datum,url,odkud,oblast,parametry)
-2. The last line must be empty - for a file with 10 lines, the 9th line must end with a newline character, e.g. "4,radoslav,4,yahoo,venku,eduroam,pc\n", and the 10th line will be just empty "".
+2. The last line must end with a newline character, e.g. "4,radoslav,4,yahoo,venku,eduroam,pc\n".
 
 The program checks for correct format, so you will be warned if it is incorrect. You can check the included test_attack.txt and test.txt file for reference.
 
@@ -39,7 +39,7 @@ $ python3 start.py -h
 The next command will generate 20 attacks (in total) taken from the file test_attack.txt into a file test.txt with 4 weeks of network data. The program also counts times between user actions in a separate column 'last_action'.
 
 We assume the log file (test.txt **before** generating) represents 1 week of network data.
-The resulting output log file **after** the generating will represent 4 weeks of network data, with a total of 500 attacks spread between the 4 weeks.
+The resulting output log file **after** the generating will represent 4 weeks of network data, with a total of 20 attacks spread between the 4 weeks.
 ```
 $ python3 start.py -af test_attack.txt -lf test.txt -of test_o.txt -a 20 -w 4
 ```
