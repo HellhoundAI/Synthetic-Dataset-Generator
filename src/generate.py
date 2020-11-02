@@ -1,49 +1,49 @@
 from random import choice, randint
-import os, copy
+import os, copy, gc
 
 class CONST(object):
     __slots__ = ()
 
     SEPARATOR = ','
-    #pozor na to pridavani last action sloupce (az se to bude checkovat ve check_file_format)
     FIRST_LINE = 'id,uzivatel,datum,url,odkud,oblast,parametry\n'
-    # mozna se pak bude hodit i DATUM_INDEX protoze casto pouzivam [2] u poli
+    # indices for certain columns in datasets that are often used in code
     DATUM_IDX = 2
     UZIVATEL_IDX = 1
 
 CONST = CONST()
 
 def count_time_between_actions(file):
-    actions = _get_times_between_actions(file)
-    _write_times_between_actions(file, actions)
+    times = _get_times_between_actions(file)
+    _write_times_between_actions(file, times)
 
 def _get_times_between_actions(file):
-    # dict s uzivatelskymi jmeny a casy posledni nalezene akce
+    # dictionary for usernames and time of last found action for the username
     users = {}
-    # pole s casy od poslednich akci pro kazdy radek (ne pro usernames)
-    actions = []
+    # list with times between actions for each line of dataset
+    times = []
+
     with open(file, "r") as f_in:
         for line_n, line in enumerate(f_in):
             if line_n == 0:
-                # prvni radek nazev sloupce
-                actions.append("last_action")
+                # first line is the names of columns
+                times.append("time_from_last_action")
                 continue
 
             line_list = line.split(CONST.SEPARATOR)
             user = line_list[CONST.UZIVATEL_IDX]
-            time = int(line_list[CONST.DATUM_IDX])
+            time_now = int(line_list[CONST.DATUM_IDX])
 
             if user in users:
-                last_action = time - users[user]
-                actions.append(last_action)
-                # aktualizace casu posledni nalezene akce v dict
-                users[user] = time
+                time = time_now - users[user]
+                times.append(time)
+                # rewrite the last found action in dictionary
+                users[user] = time_now
             else:
-                # prvni pripad s timto username, cas od posledni akce je tedy 0
-                actions.append(0)
-                users[user] = time
+                # first case with this username, so time from last action is 0
+                times.append(0)
+                users[user] = time_now
 
-    return actions
+    return times
 
 def _write_times_between_actions(file, actions):
     f_in = open(file, "r")
@@ -53,7 +53,9 @@ def _write_times_between_actions(file, actions):
     contents_modified = []
 
     for line_n, line in enumerate(contents):
-        # vim vzdycky ze line[-1] bude \n (kvuli file format check)
+        # we know that line[-1] will always be '\n', because we check the file format
+        # so the modified line is:
+        # unmodified line up until '\n' + separator + time between actions + '\n'
         line_mod = line[0:-1] + CONST.SEPARATOR + str(actions[line_n]) + "\n"
         contents_modified.append(line_mod)
 
@@ -70,9 +72,9 @@ def check_file_format(file):
         status = status + 2
 
     if status == 0:
-        print("First line of file is not a correct format of column names (id,uzivatel,datum,url,odkud,oblast,parametry\\n).\nPenultimate line must end with a newline character, i.e. last line must be empty.")
+        print(f"First line of file is not a correct format of column names ({CONST.FIRST_LINE}).\nPenultimate line must end with a newline character, i.e. last line must be empty.")
     elif status == 1:
-        print("First line of file is not a correct format of column names (id,uzivatel,datum,url,odkud,oblast,parametry\\n).")
+        print(f"First line of file is not a correct format of column names ({CONST.FIRST_LINE}).")
     elif status == 2:
         print("Penultimate line must end with a newline character, i.e. last line must be empty.")
     elif status == 3:
@@ -101,47 +103,47 @@ def _get_last_line(file):
 def _is_first_line_header(file):
     with open(file, 'r') as f:
         for line in f:
-            #
-            #   ZDE SE ZADAVA SPECIFICKY VZHLED PRVNIHO RADKU (a v check_file_format())
-            #
             if line == CONST.FIRST_LINE:
                 return True
             else:
                 return False
 
+def _get_n_of_attacks(n_of_attacks, last_cycle):
+    if last_cycle:
+        return 0, n_of_attacks 
+    else:
+        _n_of_attacks = randint(0, n_of_attacks)
+        n_of_attacks = n_of_attacks - _n_of_attacks
+        return n_of_attacks, _n_of_attacks
+
 def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_weeks):
     tmp_files = []
-
     last_time = -1
+    last_cycle = False
     week = 0
+
     while week < int(n_of_weeks): 
-        # check pro posledni prubeh cyklu
+        # checking for the last cycle
         if week + 1 == n_of_weeks:
-            _n_of_attacks = n_of_attacks
-        else:
-            _n_of_attacks = randint(0, n_of_attacks)
-            n_of_attacks = n_of_attacks - _n_of_attacks
+            last_cycle = True
 
+        n_of_attacks, _n_of_attacks = _get_n_of_attacks(n_of_attacks, last_cycle)
         tmp_files.append(_generate_to_file(attack_file, log_file, out_file + str(week), _n_of_attacks, last_time))
+        last_time = _get_last_time(tmp_files[week], last_cycle)
 
-        if week + 1 == n_of_weeks:
-            pass
-        else:
-            last_time = _get_last_time(tmp_files[week])
         week = week + 1
 
-    # we want to join the temporary output files after creating them in the previous while cycle
-    # asi lze pridat return value a exception pokud tu bude fail
     _join_tmp_files(tmp_files, out_file)
-
-    # we need to remove the temporary output files after joining them
     _remove_tmp_files(tmp_files)
 
-def _get_last_time(file):
+def _get_last_time(file: str, last_cycle: bool) -> str:
+    if last_cycle:
+        # we don't need the last time from previous file if this cycle is last
+        return
     last_line = _get_last_line(file)
     last_line_split = last_line.split(CONST.SEPARATOR)
-    # pozor na to jestli vracim string nebo int
-    # tady vracim STRING
+
+    # be conscious of data types! here we return string
     return last_line_split[CONST.DATUM_IDX]
 
 def _join_tmp_files(tmp_files_list, out_file):
@@ -150,14 +152,13 @@ def _join_tmp_files(tmp_files_list, out_file):
         for f_name in tmp_files_list:
             with open(f_name) as f_in:
                 for line_n, line in enumerate(f_in):
-                    # nasledujici radka zajisti, ze prvni radek souboru (nazvy sloupcu) se nebere v potaz, krome uplne prvniho
+                    # we want only the first line of the first file (column names) to be written
                     if line_n == 0:
                         if column_names_written:
                             continue
                         else:
                             column_names_written = True
 
-                    # je NUTNE aby soubory koncily s 1 prazdnou radkou
                     f_out.write(line)
 
 def _remove_tmp_files(tmp_files_list):
@@ -167,24 +168,35 @@ def _remove_tmp_files(tmp_files_list):
 def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
     f_in = open(attack_file, "r")
     attacks = f_in.readlines()
-    # nasledujici radka odstrani prvni radek z attack file (nazvy sloupcu)
+    # following line removes the first line from attack file (column names)
     attacks.pop(0)
 
+    # idea: we open these datasets every week in n_of_weeks, maybe we can open it once in generate_to_files?
+    # if not, maybe put these reads/writes into own funcs
     f_log = open(log_file, "r")
     contents = f_log.readlines()
     f_log.close()
 
-    # budeme hodne pristupovat k jednotlivym sloupcum, musime tedy ze stringu udelat pole
+    # we will access individual columns often, so we must make strings into list
     attacks_split = _split_list(attacks)
     _contents_split = _split_list(contents)
 
-    # potrebujeme precislovat DATUM pro spojovani tydnu, ale jen kdyz nejde o prvni soubor
+    # free up memory
+    del contents
+    del attacks
+    gc.collect()
+
+    # we need to rewrite the DATUM column for joining datasets together, but only if this is not the first tmp file created
     if last_time != -1:
         contents_split = _transform_times(_contents_split, last_time)
     else:
         contents_split = _contents_split
 
-    # take se bude hodit znat casove rozestupy mezi utoky ve zvlastnim poli
+    # free up memory
+    del _contents_split
+    gc.collect()
+
+    # we also need to know intervals between attacks in a specific list
     attack_intervals = _get_attack_intervals(attacks_split)
     n = 0
 
@@ -193,18 +205,23 @@ def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
         index = randint(1, len(contents_split) - 1)
         time = int(contents_split[index][CONST.DATUM_IDX])
 
-        # nechceme prepisovat puvodni attacks_split, pri vice utocich by to delalo bordel
+        # we don't want to overwrite the original attacks_split list, with more attacks it would create trouble
         attacks_split_clean = copy.deepcopy(attacks_split)
-        # transformace sloupce DATUM u jednotlivych utoku podle vybraneho indexu
+
+        # transformation of the DATUM column of the individual attacks based on the randomly chosen index
+        # maybe put into own func
         for attack_n, attack in enumerate(attacks_split_clean):
             attack[CONST.DATUM_IDX] = str(time + attack_intervals[attack_n])
             time = int(attack[CONST.DATUM_IDX])
 
-        # vkladani jednotlivych utoku do pole reprezentujici soubor
+        # inserting individual attacks into the contents_split list representing the file
+        # maybe put into own func
         for attack_n, attack in enumerate(attacks_split_clean):
             if attack_n == 0:
+                # we insert the first attack at the index chosen randomly earlier
                 pass
             else:
+                # we need to keep intervals between each attack
                 next_index = _get_next_index(contents_split, attack[CONST.DATUM_IDX])
                 index = next_index
 
@@ -212,17 +229,25 @@ def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
 
         n = n + 1
 
-    # musime rozdeleny soubor zase slozit
-    contents = _join_list(contents_split)
-
     f_out = open(out_file, "w")
-    f_out.writelines(contents)
+    # we need to join the earlier split file
+    f_out.writelines(_join_list(contents_split))
     f_out.close()
 
-    # mozna tu lze vracet i ten nejvetsi posledni timestamp pro dalsi skladani v generate to files
+    # idea: return last time stamp here together with out_file, and maybe remove _get_last_time?
     return out_file
 
 def _transform_times(list_orig, last_time):
+    """Transform (rewrite) the timestamps in input list by an offset.
+
+    Args:
+        list_orig (list): A split list that is to be transformed
+        last_time (int): The offset time by which the timestamps will be shifted
+
+    Returns:
+        list: a list that is identical to the original but with timestamps transformed
+    """
+
     list_mod = []
 
     for line_n, line in enumerate(list_orig):
@@ -231,6 +256,8 @@ def _transform_times(list_orig, last_time):
             continue
 
         current_time = int(line[CONST.DATUM_IDX])
+        # the current time will be 0 only at the beginning of the file (or files)
+        # in this case we want to add 1 to the modified time, because otherwise the time series would be inconsistent
         if current_time == 0:
             line[CONST.DATUM_IDX] = str(current_time + int(last_time) + 1)
         else:
@@ -241,21 +268,42 @@ def _transform_times(list_orig, last_time):
     return list_mod
 
 def _get_next_index(list_split, time):
+    """Get the index in which to insert an attack.
+
+    Args:
+        list_split (list): A split list representing the file where we want to insert into.
+        time (str): The time of attack that is to be inserted. Will be converted to int, so must be a number.
+
+    Returns:
+        int: index at which the attack can be inserted
+    """
+
     index_return = -1
     for index, item in enumerate(list_split):
-        # na index = 0 je nazev sloupce, to by delalo bordel
+        # we search for the next possible index where to insert the next attack
+        # that means where the DATUM will be equal or greater than the time of attack we want to insert
+        # at index = 0 are the column names, we don't want them
         if index != 0 and int(item[CONST.DATUM_IDX]) >= int(time):
             index_return = index
             break
 
     if index_return == -1:
-        # takto zajistime, ze bude vlozeno uplne na konec pole
-        # nefunguje, pri vice utocich je problem na konci
+        # if the index_return is still -1, it means we must insert at the end of file
+        # because the attack we want to insert has TIME greater than any TIME in the file
         return len(list_split)
     else:
         return index_return
 
 def _get_attack_intervals(attacks_split):
+    """Get time intervals between attacks.
+
+    Args:
+        attacks_split (list): A split list of attacks
+
+    Returns:
+        list: for every attack in the attacks_split, there will be an integer time interval
+    """
+
     intervals = []
     previous_attack = attacks_split[0]
 
@@ -265,7 +313,16 @@ def _get_attack_intervals(attacks_split):
 
     return intervals
 
-def _split_list(list_to_split):
+def _split_list(list_to_split: list) -> list:
+    """Split a list and return the split version.
+
+    Args:
+        list_to_split (list): The list to be split
+
+    Returns:
+        list: a split list
+    """
+
     list_split = []
 
     for item in list_to_split:
@@ -273,7 +330,16 @@ def _split_list(list_to_split):
 
     return list_split
 
-def _join_list(list_to_join):
+def _join_list(list_to_join: list) -> list:
+    """Join a separated list and return the joined version.
+
+    Args:
+        list_to_join (list): The list to be joined
+
+    Returns:
+        list: a joined list
+    """
+
     list_joined = []
 
     for item in list_to_join:
