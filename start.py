@@ -12,21 +12,13 @@ parser.add_argument("-a", "--number_of_attacks", help="How many attacks should b
 parser.add_argument("-w", "--number_of_weeks", help="How many weeks of data should be generated.", 
                     type=int, required=True)
 parser.add_argument("-t", "--transform", help="This sets on the TRANSFORM mode. The only thing the program will do is count the time between actions for LOG FILE (this will CHANGE the LOG FILE).", action="store_true")
+# TODO use mutually exclusive groups for the modes/other args
 
 args = parser.parse_args()
 
 # check against None too
-if not os.path.isfile(args.attack_file):
-    raise ValueError("Attack file does not exist/is not a file!")
-
 if not os.path.isfile(args.log_file):
     raise ValueError("Log file does not exist/is not a file!")
-
-if args.number_of_attacks <= 0:
-    raise ValueError("Number of attacks must be greater than 0!")
-
-if args.number_of_weeks <= 0:
-    raise ValueError("Number of weeks must be greater than 0!")
 
 if args.transform:
     print(f"Calculating time between user actions for {args.log_file} ...")
@@ -34,6 +26,16 @@ if args.transform:
     print("Finished calculating!\n")
     print("All done!\n")
     exit()
+
+if not os.path.isfile(args.attack_file):
+    raise ValueError("Attack file does not exist/is not a file!")
+
+if args.number_of_attacks <= 0:
+    raise ValueError("Number of attacks must be greater than 0!")
+
+if args.number_of_weeks <= 0:
+    raise ValueError("Number of weeks must be greater than 0!")
+
 
 print(f"Checking the file format of {args.attack_file} ...")
 if check_file_format(args.attack_file):
@@ -46,8 +48,7 @@ if check_file_format(args.log_file):
     print("OK!\n")
 else:
     exit()
-
-# ??? vyzkouset na windows txt files?
+    
 
 print(f"Generating {args.number_of_attacks} attacks from {args.attack_file} into network logs from {args.log_file} ...\nThe output log file {args.out_file} will represent {args.number_of_weeks} weeks of data.")
 generate_to_files(args.attack_file, args.log_file, args.out_file, args.number_of_attacks, args.number_of_weeks)

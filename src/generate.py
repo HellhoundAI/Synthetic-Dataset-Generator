@@ -1,14 +1,16 @@
 from random import choice, randint
-import os, copy, gc
+import os, copy, gc, csv
 
 class CONST(object):
     __slots__ = ()
 
     SEPARATOR = ','
+    # maybe first line as a list (either with or without time_from_last_action column)
+    # then we could check "if X in CONST.FIRST_LINE" etc
     FIRST_LINE = 'id,uzivatel,datum,url,odkud,oblast,parametry\n'
     # indices for certain columns in datasets that are often used in code
-    DATUM_IDX = 2
-    UZIVATEL_IDX = 1
+    TIMESTAMP_IDX = 2
+    USER_IDX = 1
 
 CONST = CONST()
 
@@ -23,15 +25,15 @@ def _get_times_between_actions(file):
     times = []
 
     with open(file, "r") as f_in:
-        for line_n, line in enumerate(f_in):
+        csv_r = csv.reader(f_in, delimiter=CONST.SEPARATOR)
+        for line_n, line in enumerate(csv_r):
             if line_n == 0:
                 # first line is the names of columns
                 times.append("time_from_last_action")
                 continue
 
-            line_list = line.split(CONST.SEPARATOR)
-            user = line_list[CONST.UZIVATEL_IDX]
-            time_now = int(line_list[CONST.DATUM_IDX])
+            user = line[CONST.USER_IDX]
+            time_now = int(line[CONST.TIMESTAMP_IDX])
 
             if user in users:
                 time = time_now - users[user]
@@ -46,21 +48,17 @@ def _get_times_between_actions(file):
     return times
 
 def _write_times_between_actions(file, actions):
-    f_in = open(file, "r")
-    contents = f_in.readlines()
+    f_in = open(file, 'r')
+    csv_r = csv.reader(f_in, delimiter=CONST.SEPARATOR)
+    f_out = open(file + '_o', 'w')
+    csv_w = csv.writer(f_out, delimiter=CONST.SEPARATOR, quoting=csv.QUOTE_ALL)
+
+
+    for line_n, line in enumerate(csv_r):
+        line.append(str(actions[line_n]))
+        csv_w.writerow(line)
+
     f_in.close()
-
-    contents_modified = []
-
-    for line_n, line in enumerate(contents):
-        # we know that line[-1] will always be '\n', because we check the file format
-        # so the modified line is:
-        # unmodified line up until '\n' + separator + time between actions + '\n'
-        line_mod = line[0:-1] + CONST.SEPARATOR + str(actions[line_n]) + "\n"
-        contents_modified.append(line_mod)
-
-    f_out = open(file, "w")
-    f_out.writelines(contents_modified)
     f_out.close()
 
 def check_file_format(file):
@@ -144,7 +142,7 @@ def _get_last_time(file: str, last_cycle: bool) -> str:
     last_line_split = last_line.split(CONST.SEPARATOR)
 
     # be conscious of data types! here we return string
-    return last_line_split[CONST.DATUM_IDX]
+    return last_line_split[CONST.TIMESTAMP_IDX]
 
 def _join_tmp_files(tmp_files_list, out_file):
     column_names_written = False
@@ -203,7 +201,7 @@ def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
     while n < int(n_of_attacks):
 
         index = randint(1, len(contents_split) - 1)
-        time = int(contents_split[index][CONST.DATUM_IDX])
+        time = int(contents_split[index][CONST.TIMESTAMP_IDX])
 
         # we don't want to overwrite the original attacks_split list, with more attacks it would create trouble
         attacks_split_clean = copy.deepcopy(attacks_split)
@@ -211,8 +209,8 @@ def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
         # transformation of the DATUM column of the individual attacks based on the randomly chosen index
         # maybe put into own func
         for attack_n, attack in enumerate(attacks_split_clean):
-            attack[CONST.DATUM_IDX] = str(time + attack_intervals[attack_n])
-            time = int(attack[CONST.DATUM_IDX])
+            attack[CONST.TIMESTAMP_IDX] = str(time + attack_intervals[attack_n])
+            time = int(attack[CONST.TIMESTAMP_IDX])
 
         # inserting individual attacks into the contents_split list representing the file
         # maybe put into own func
@@ -222,7 +220,7 @@ def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
                 pass
             else:
                 # we need to keep intervals between each attack
-                next_index = _get_next_index(contents_split, attack[CONST.DATUM_IDX])
+                next_index = _get_next_index(contents_split, attack[CONST.TIMESTAMP_IDX])
                 index = next_index
 
             contents_split.insert(index, attack)
@@ -255,13 +253,13 @@ def _transform_times(list_orig, last_time):
             list_mod.append(line)
             continue
 
-        current_time = int(line[CONST.DATUM_IDX])
+        current_time = int(line[CONST.TIMESTAMP_IDX])
         # the current time will be 0 only at the beginning of the file (or files)
         # in this case we want to add 1 to the modified time, because otherwise the time series would be inconsistent
         if current_time == 0:
-            line[CONST.DATUM_IDX] = str(current_time + int(last_time) + 1)
+            line[CONST.TIMESTAMP_IDX] = str(current_time + int(last_time) + 1)
         else:
-            line[CONST.DATUM_IDX] = str(current_time + int(last_time))
+            line[CONST.TIMESTAMP_IDX] = str(current_time + int(last_time))
 
         list_mod.append(line)
 
@@ -283,7 +281,7 @@ def _get_next_index(list_split, time):
         # we search for the next possible index where to insert the next attack
         # that means where the DATUM will be equal or greater than the time of attack we want to insert
         # at index = 0 are the column names, we don't want them
-        if index != 0 and int(item[CONST.DATUM_IDX]) >= int(time):
+        if index != 0 and int(item[CONST.TIMESTAMP_IDX]) >= int(time):
             index_return = index
             break
 
@@ -308,7 +306,7 @@ def _get_attack_intervals(attacks_split):
     previous_attack = attacks_split[0]
 
     for attack in attacks_split:
-        intervals.append(int(attack[CONST.DATUM_IDX]) - int(previous_attack[CONST.DATUM_IDX]))
+        intervals.append(int(attack[CONST.TIMESTAMP_IDX]) - int(previous_attack[CONST.TIMESTAMP_IDX]))
         previous_attack = attack
 
     return intervals
