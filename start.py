@@ -11,6 +11,7 @@ parser.add_argument("-a", "--number_of_attacks", help="How many attacks should b
                     type=int, required=True)
 parser.add_argument("-w", "--number_of_weeks", help="How many weeks of data should be generated.", 
                     type=int, required=True)
+parser.add_argument("-t", "--transform", help="This sets on the TRANSFORM mode. The only thing the program will do is count the time between actions for LOG FILE (this will CHANGE the LOG FILE).", action="store_true")
 
 args = parser.parse_args()
 
@@ -27,6 +28,12 @@ if args.number_of_attacks <= 0:
 if args.number_of_weeks <= 0:
     raise ValueError("Number of weeks must be greater than 0!")
 
+if args.transform:
+    print(f"Calculating time between user actions for {args.log_file} ...")
+    count_time_between_actions(args.log_file)
+    print("Finished calculating!\n")
+    print("All done!\n")
+    exit()
 
 print(f"Checking the file format of {args.attack_file} ...")
 if check_file_format(args.attack_file):
@@ -45,6 +52,7 @@ else:
 print(f"Generating {args.number_of_attacks} attacks from {args.attack_file} into network logs from {args.log_file} ...\nThe output log file {args.out_file} will represent {args.number_of_weeks} weeks of data.")
 generate_to_files(args.attack_file, args.log_file, args.out_file, args.number_of_attacks, args.number_of_weeks)
 print("Finished generating attacks!\n")
+
 
 print(f"Calculating time between user actions for {args.out_file} ...")
 count_time_between_actions(args.out_file)
