@@ -7,7 +7,8 @@ class CONST(object):
     SEPARATOR = ','
     # maybe first line as a list (either with or without time_from_last_action column)
     # then we could check "if X in CONST.FIRST_LINE" etc
-    FIRST_LINE = 'id,uzivatel,datum,url,odkud,oblast,parametry\n'
+    # check if this works on windows
+    FIRST_LINE = '"id_norm","user","timestamp_norm","url_hash","ip","parameters_hash","asn","bgp_prefix","as_name","net_name","country_code","attack"\n'
     # indices for certain columns in datasets that are often used in code
     TIMESTAMP_IDX = 2
     USER_IDX = 1
@@ -24,7 +25,7 @@ def _get_times_between_actions(file):
     # list with times between actions for each line of dataset
     times = []
 
-    with open(file, "r") as f_in:
+    with open(file, "r", encoding="utf-8") as f_in:
         csv_r = csv.reader(f_in, delimiter=CONST.SEPARATOR)
         for line_n, line in enumerate(csv_r):
             if line_n == 0:
@@ -48,9 +49,11 @@ def _get_times_between_actions(file):
     return times
 
 def _write_times_between_actions(file, actions):
-    f_in = open(file, 'r')
+    f_in = open(file, 'r', encoding="utf-8")
     csv_r = csv.reader(f_in, delimiter=CONST.SEPARATOR)
-    f_out = open(file + '_o', 'w')
+    # because of windows, we add the newline parameter. otherwise every other line would be empty
+    # we also probably want to delete the IN file here, rename the OUT file to the name of IN file
+    f_out = open(file + '_o', 'w', encoding="utf-8", newline='')
     csv_w = csv.writer(f_out, delimiter=CONST.SEPARATOR, quoting=csv.QUOTE_ALL)
 
 
@@ -89,6 +92,7 @@ def _is_last_line_empty(file):
 # extra fast (binary) check of last line in file
 # might not work on windows (need testing)
 def _get_last_line(file):
+    # add encoding utf-8? or not needed in binary?
     with open(file, 'rb') as f:
         f.seek(-2, os.SEEK_END)
 
@@ -99,7 +103,7 @@ def _get_last_line(file):
         return f.readline().decode()
 
 def _is_first_line_header(file):
-    with open(file, 'r') as f:
+    with open(file, 'r', encoding="utf-8") as f:
         for line in f:
             if line == CONST.FIRST_LINE:
                 return True
@@ -146,7 +150,7 @@ def _get_last_time(file: str, last_cycle: bool) -> str:
 
 def _join_tmp_files(tmp_files_list, out_file):
     column_names_written = False
-    with open(out_file, 'w') as f_out:
+    with open(out_file, 'w', encoding="utf-8") as f_out:
         for f_name in tmp_files_list:
             with open(f_name) as f_in:
                 for line_n, line in enumerate(f_in):
@@ -164,14 +168,14 @@ def _remove_tmp_files(tmp_files_list):
         os.remove(file)
 
 def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
-    f_in = open(attack_file, "r")
+    f_in = open(attack_file, "r", encoding="utf-8")
     attacks = f_in.readlines()
     # following line removes the first line from attack file (column names)
     attacks.pop(0)
 
     # idea: we open these datasets every week in n_of_weeks, maybe we can open it once in generate_to_files?
     # if not, maybe put these reads/writes into own funcs
-    f_log = open(log_file, "r")
+    f_log = open(log_file, "r", encoding="utf-8")
     contents = f_log.readlines()
     f_log.close()
 
@@ -227,7 +231,7 @@ def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
 
         n = n + 1
 
-    f_out = open(out_file, "w")
+    f_out = open(out_file, "w", encoding="utf-8")
     # we need to join the earlier split file
     f_out.writelines(_join_list(contents_split))
     f_out.close()

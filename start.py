@@ -11,7 +11,7 @@ parser.add_argument("-a", "--number_of_attacks", help="How many attacks should b
                     type=int, required=True)
 parser.add_argument("-w", "--number_of_weeks", help="How many weeks of data should be generated.", 
                     type=int, required=True)
-parser.add_argument("-t", "--transform", help="This sets on the TRANSFORM mode. The only thing the program will do is count the time between actions for LOG FILE (this will CHANGE the LOG FILE).", action="store_true")
+parser.add_argument("-t", "--transform", help="This sets on the TRANSFORM mode. The only thing the program will do is count the time between actions for LOG FILE. It will create a new file.", action="store_true")
 # TODO use mutually exclusive groups for the modes/other args
 
 args = parser.parse_args()
@@ -21,6 +21,7 @@ if not os.path.isfile(args.log_file):
     raise ValueError("Log file does not exist/is not a file!")
 
 if args.transform:
+    print("Transform mode active!")
     print(f"Calculating time between user actions for {args.log_file} ...")
     count_time_between_actions(args.log_file)
     print("Finished calculating!\n")

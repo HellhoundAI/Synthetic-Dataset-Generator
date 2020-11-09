@@ -1,6 +1,6 @@
-id,uzivatel,datum,url,odkud,oblast,parametry
-ATTACK1,utocnik1,10,google,doma,eduroam,mobil
-ATTACK2,utocnik1,12,yahoo,doma,eduroam,pc
-ATTACK3,utocnik2,13,yahoo,venku,eduroam,pc
-ATTACK4,utocnik1,15,google,venku,zamestnanec,pc
-ATTACK5,utocnik2,18,google,venku,zamestnanec,pc
+"id_norm","user","timestamp_norm","url_hash","ip","parameters_hash","asn","bgp_prefix","as_name","net_name","country_code","attack"
+"ATAK","user1185","1295992","4b8e528a6118f3cc346e576063f0ea710cf84c94cb8a5bd494b8dbfb6f0bc2c3","ip82797","7b22c906375917c120961b6103a1caa2034a44954efd1825acc7a71b579edcb8","48926","37.143.112.0/21","Pe3ny Net s.r.o.",\N,"CZ","AAA"
+"ATAK","user1185","1295992","4b8e528a6118f3cc346e576063f0ea710cf84c94cb8a5bd494b8dbfb6f0bc2c3","ip82797","7b22c906375917c120961b6103a1caa2034a44954efd1825acc7a71b579edcb8","48926","37.143.112.0/21","Pe3ny Net s.r.o.",\N,"CZ","AAA"
+"ATAK","user1185","1295992","4b8e528a6118f3cc346e576063f0ea710cf84c94cb8a5bd494b8dbfb6f0bc2c3","ip82797","7b22c906375917c120961b6103a1caa2034a44954efd1825acc7a71b579edcb8","48926","37.143.112.0/21","Pe3ny Net s.r.o.",\N,"CZ","AAA"
+"ATAK","user1185","1295992","4b8e528a6118f3cc346e576063f0ea710cf84c94cb8a5bd494b8dbfb6f0bc2c3","ip82797","7b22c906375917c120961b6103a1caa2034a44954efd1825acc7a71b579edcb8","48926","37.143.112.0/21","Pe3ny Net s.r.o.",\N,"CZ","AAA"
+"ATAK","user1185","1295992","4b8e528a6118f3cc346e576063f0ea710cf84c94cb8a5bd494b8dbfb6f0bc2c3","ip82797","7b22c906375917c120961b6103a1caa2034a44954efd1825acc7a71b579edcb8","48926","37.143.112.0/21","Pe3ny Net s.r.o.",\N,"CZ","AAA"
