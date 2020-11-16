@@ -1,5 +1,6 @@
 from random import choice, randint
 import os, copy, gc, csv
+# import datetime as dt
 
 class CONST(object):
     __slots__ = ()
@@ -32,6 +33,13 @@ def _get_times_between_actions(file):
                 # first line is the names of columns
                 times.append("time_from_last_action")
                 continue
+
+            # original datasets
+            # must import datetime as dt first
+            # cele toto je v try, v except je times.append("") a continue
+            # user = line[CONST.USER_IDX]
+            # time_full = dt.datetime.strptime(line[CONST.TIMESTAMP_IDX], "%Y-%m-%d %H:%M:%S")
+            # time_now = int(dt.datetime.strftime(time_full, "%m%d%H%M%S")
 
             user = line[CONST.USER_IDX]
             time_now = int(line[CONST.TIMESTAMP_IDX])
