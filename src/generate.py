@@ -9,14 +9,14 @@ class CONST(object):
     # maybe first line as a list (either with or without time_from_last_action column)
     # then we could check "if X in CONST.FIRST_LINE" etc
     # check if this works on windows
-    FIRST_LINE = '"id_norm","user","timestamp_norm","url_hash","ip","parameters_hash","asn","bgp_prefix","as_name","net_name","country_code","attack"\n'
+    FIRST_LINE = '"id_norm","user","timestamp_norm","url","ip","parameters_hash","asn","bgp_prefix","as_name","net_name","country_code","attack"\n'
     # indices for certain columns in datasets that are often used in code
     TIMESTAMP_IDX = 2
     USER_IDX = 1
 
 CONST = CONST()
 
-def count_time_between_actions(file):
+def count_times_between_actions(file):
     times = _get_times_between_actions(file)
     _write_times_between_actions(file, times)
 
@@ -34,7 +34,7 @@ def _get_times_between_actions(file):
                 times.append("time_from_last_action")
                 continue
 
-            # original datasets
+            ### ORIGINAL DATASETS
             # must import datetime as dt first
             # cele toto je v try, v except je times.append("") a continue
             # user = line[CONST.USER_IDX]
@@ -59,9 +59,9 @@ def _get_times_between_actions(file):
 def _write_times_between_actions(file, actions):
     f_in = open(file, 'r', encoding="utf-8")
     csv_r = csv.reader(f_in, delimiter=CONST.SEPARATOR)
-    # because of windows, we add the newline parameter. otherwise every other line would be empty
+    # because of windows, we add the newline parameter. otherwise every other line would be empty. works with linux too
     # we also probably want to delete the IN file here, rename the OUT file to the name of IN file
-    f_out = open(file + '_o', 'w', encoding="utf-8", newline='')
+    f_out = open(file + '_times', 'w', encoding="utf-8", newline='')
     csv_w = csv.writer(f_out, delimiter=CONST.SEPARATOR, quoting=csv.QUOTE_ALL)
 
 
@@ -72,7 +72,12 @@ def _write_times_between_actions(file, actions):
     f_in.close()
     f_out.close()
 
+    os.remove(file)
+    os.rename(file + '_times', file)
+
 def check_file_format(file):
+    # TODO mozna tady checkovat jestli jde parse csv?
+    # kdyztak SO "Check if file has a CSV format with Python"
     status = 0
     if _is_last_line_empty(file):
         status = status + 1
@@ -116,6 +121,8 @@ def _is_first_line_header(file):
             if line == CONST.FIRST_LINE:
                 return True
             else:
+                print(line)
+                print(CONST.FIRST_LINE)
                 return False
 
 def _get_n_of_attacks(n_of_attacks, last_cycle):
@@ -152,9 +159,13 @@ def _get_last_time(file: str, last_cycle: bool) -> str:
         return
     last_line = _get_last_line(file)
     last_line_split = last_line.split(CONST.SEPARATOR)
+    # print(last_line_split)
 
     # be conscious of data types! here we return string
-    return last_line_split[CONST.TIMESTAMP_IDX]
+    last_time = last_line_split[CONST.TIMESTAMP_IDX]
+    last_time = last_time.replace('"', '')
+    # print(last_time)
+    return last_time
 
 def _join_tmp_files(tmp_files_list, out_file):
     column_names_written = False
@@ -176,72 +187,93 @@ def _remove_tmp_files(tmp_files_list):
         os.remove(file)
 
 def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
-    f_in = open(attack_file, "r", encoding="utf-8")
-    attacks = f_in.readlines()
+    f_in = open(attack_file, 'r', encoding="utf-8")
+    attacks = list(csv.reader(f_in, delimiter=CONST.SEPARATOR))
+    f_in.close()
+
+    # f_in = open(attack_file, "r", encoding="utf-8")
+    # attacks = f_in.readlines()
+
     # following line removes the first line from attack file (column names)
     attacks.pop(0)
 
+    f_in = open(log_file, 'r', encoding="utf-8")
+    _contents = list(csv.reader(f_in, delimiter=CONST.SEPARATOR))
+    f_in.close()
     # idea: we open these datasets every week in n_of_weeks, maybe we can open it once in generate_to_files?
     # if not, maybe put these reads/writes into own funcs
-    f_log = open(log_file, "r", encoding="utf-8")
-    contents = f_log.readlines()
-    f_log.close()
+    # f_log = open(log_file, "r", encoding="utf-8")
+    # contents = f_log.readlines()
+    # f_log.close()
 
     # we will access individual columns often, so we must make strings into list
-    attacks_split = _split_list(attacks)
-    _contents_split = _split_list(contents)
+    # attacks_split = _split_list(attacks)
+    # _contents_split = _split_list(contents)
 
     # free up memory
-    del contents
-    del attacks
+    # del contents
+    # del attacks
     gc.collect()
 
     # we need to rewrite the DATUM column for joining datasets together, but only if this is not the first tmp file created
     if last_time != -1:
-        contents_split = _transform_times(_contents_split, last_time)
+        # contents_split = _transform_times(_contents_split, last_time)
+        contents = _transform_times(_contents, last_time)
     else:
-        contents_split = _contents_split
+        # contents_split = _contents_split
+        contents = _contents
 
     # free up memory
-    del _contents_split
+    # del _contents_split
+    del _contents
     gc.collect()
 
     # we also need to know intervals between attacks in a specific list
-    attack_intervals = _get_attack_intervals(attacks_split)
+    # attack_intervals = _get_attack_intervals(attacks_split)
+    attack_intervals = _get_attack_intervals(attacks)
     n = 0
 
     while n < int(n_of_attacks):
 
-        index = randint(1, len(contents_split) - 1)
-        time = int(contents_split[index][CONST.TIMESTAMP_IDX])
+        index = randint(1, len(contents) - 1)
+        time = int(contents[index][CONST.TIMESTAMP_IDX])
 
-        # we don't want to overwrite the original attacks_split list, with more attacks it would create trouble
-        attacks_split_clean = copy.deepcopy(attacks_split)
+        # we don't want to overwrite the original attacks list, with more attacks it would create trouble
+        attacks_clean = copy.deepcopy(attacks)
 
         # transformation of the DATUM column of the individual attacks based on the randomly chosen index
         # maybe put into own func
-        for attack_n, attack in enumerate(attacks_split_clean):
+        for attack_n, attack in enumerate(attacks_clean):
             attack[CONST.TIMESTAMP_IDX] = str(time + attack_intervals[attack_n])
             time = int(attack[CONST.TIMESTAMP_IDX])
 
         # inserting individual attacks into the contents_split list representing the file
         # maybe put into own func
-        for attack_n, attack in enumerate(attacks_split_clean):
+        for attack_n, attack in enumerate(attacks_clean):
             if attack_n == 0:
                 # we insert the first attack at the index chosen randomly earlier
                 pass
             else:
                 # we need to keep intervals between each attack
-                next_index = _get_next_index(contents_split, attack[CONST.TIMESTAMP_IDX])
+                next_index = _get_next_index(contents, attack[CONST.TIMESTAMP_IDX])
                 index = next_index
 
-            contents_split.insert(index, attack)
+            contents.insert(index, attack)
 
         n = n + 1
 
-    f_out = open(out_file, "w", encoding="utf-8")
-    # we need to join the earlier split file
-    f_out.writelines(_join_list(contents_split))
+    # f_out = open(out_file, "w", encoding="utf-8")
+    # # we need to join the earlier split file
+    # f_out.writelines(_join_list(contents))
+    # f_out.close()
+
+    f_out = open(out_file, 'w', encoding="utf-8", newline='')
+    csv_w = csv.writer(f_out, delimiter=CONST.SEPARATOR, quoting=csv.QUOTE_ALL)
+
+
+    for line in contents:
+        csv_w.writerow(line)
+
     f_out.close()
 
     # idea: return last time stamp here together with out_file, and maybe remove _get_last_time?
@@ -251,7 +283,7 @@ def _transform_times(list_orig, last_time):
     """Transform (rewrite) the timestamps in input list by an offset.
 
     Args:
-        list_orig (list): A split list that is to be transformed
+        list_orig (list): A list that is to be transformed
         last_time (int): The offset time by which the timestamps will be shifted
 
     Returns:
@@ -265,23 +297,16 @@ def _transform_times(list_orig, last_time):
             list_mod.append(line)
             continue
 
-        current_time = int(line[CONST.TIMESTAMP_IDX])
-        # the current time will be 0 only at the beginning of the file (or files)
-        # in this case we want to add 1 to the modified time, because otherwise the time series would be inconsistent
-        if current_time == 0:
-            line[CONST.TIMESTAMP_IDX] = str(current_time + int(last_time) + 1)
-        else:
-            line[CONST.TIMESTAMP_IDX] = str(current_time + int(last_time))
-
+        line[CONST.TIMESTAMP_IDX] = str(line_n + int(last_time))
         list_mod.append(line)
 
     return list_mod
 
-def _get_next_index(list_split, time):
+def _get_next_index(logs, time):
     """Get the index in which to insert an attack.
 
     Args:
-        list_split (list): A split list representing the file where we want to insert into.
+        logs (list): A list representing the log file where we want to insert into.
         time (str): The time of attack that is to be inserted. Will be converted to int, so must be a number.
 
     Returns:
@@ -289,7 +314,7 @@ def _get_next_index(list_split, time):
     """
 
     index_return = -1
-    for index, item in enumerate(list_split):
+    for index, item in enumerate(logs):
         # we search for the next possible index where to insert the next attack
         # that means where the DATUM will be equal or greater than the time of attack we want to insert
         # at index = 0 are the column names, we don't want them
@@ -300,59 +325,25 @@ def _get_next_index(list_split, time):
     if index_return == -1:
         # if the index_return is still -1, it means we must insert at the end of file
         # because the attack we want to insert has TIME greater than any TIME in the file
-        return len(list_split)
+        return len(logs)
     else:
         return index_return
 
-def _get_attack_intervals(attacks_split):
+def _get_attack_intervals(attacks):
     """Get time intervals between attacks.
 
     Args:
-        attacks_split (list): A split list of attacks
+        attacks (list): A list of attacks
 
     Returns:
-        list: for every attack in the attacks_split, there will be an integer time interval
+        list: for every attack in the attacks list, there will be an integer time interval
     """
 
     intervals = []
-    previous_attack = attacks_split[0]
+    previous_attack = attacks[0]
 
-    for attack in attacks_split:
+    for attack in attacks:
         intervals.append(int(attack[CONST.TIMESTAMP_IDX]) - int(previous_attack[CONST.TIMESTAMP_IDX]))
         previous_attack = attack
 
     return intervals
-
-def _split_list(list_to_split: list) -> list:
-    """Split a list and return the split version.
-
-    Args:
-        list_to_split (list): The list to be split
-
-    Returns:
-        list: a split list
-    """
-
-    list_split = []
-
-    for item in list_to_split:
-        list_split.append(item.split(CONST.SEPARATOR))
-
-    return list_split
-
-def _join_list(list_to_join: list) -> list:
-    """Join a separated list and return the joined version.
-
-    Args:
-        list_to_join (list): The list to be joined
-
-    Returns:
-        list: a joined list
-    """
-
-    list_joined = []
-
-    for item in list_to_join:
-        list_joined.append(CONST.SEPARATOR.join(item))
-
-    return list_joined

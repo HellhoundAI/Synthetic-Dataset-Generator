@@ -1,4 +1,4 @@
-"id_norm","user","timestamp_norm","url_hash","ip","parameters_hash","asn","bgp_prefix","as_name","net_name","country_code","attack","1"
+"id_norm","user","timestamp_norm","url","ip","parameters_hash","asn","bgp_prefix","as_name","net_name","country_code","attack","1"
 "4632514","user1185","1295992","4b8e528a6118f3cc346e576063f0ea710cf84c94cb8a5bd494b8dbfb6f0bc2c3","ip82797","7b22c906375917c120961b6103a1caa2034a44954efd1825acc7a71b579edcb8","48926","37.143.112.0/21","Pe3ny Net s.r.o.","\N","CZ","AAA","1"
 "4632515","user1185","1295992","4b8e528a6118f3cc346e576063f0ea710cf84c94cb8a5bd494b8dbfb6f0bc2c3","ip82797","ae7a1aa47d2445d0a960b0980a3f3df01c3c3934aa38674288f4a7ee423f0783","48926","37.143.112.0/21","Pe3ny Net s.r.o.","\N","CZ","AAA","1"
 "4632516","user1185","1295993","4b8e528a6118f3cc346e576063f0ea710cf84c94cb8a5bd494b8dbfb6f0bc2c3","ip82797","8bd57d7e2115a820f55a99b9a1ec414855a64ab5187c1825b4cfc9091f4434ce","48926","37.143.112.0/21","Pe3ny Net s.r.o.","\N","CZ","AAA","1"
