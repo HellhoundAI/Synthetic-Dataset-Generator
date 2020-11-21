@@ -1,5 +1,6 @@
 from random import choice, randint
-import os, copy, gc, csv
+import os, copy, gc, csv, logging, time, sys
+# this for windows transforming
 # import datetime as dt
 
 class CONST(object):
@@ -15,12 +16,20 @@ class CONST(object):
     USER_IDX = 1
 
 CONST = CONST()
+log = logging.getLogger("generate")
 
-def count_times_between_actions(file):
+def set_debug(value):
+    log.setLevel(logging.DEBUG)
+    log.debug("Debug mode active!")
+
+def count_times_between_actions(file, transform):
+    log.debug("Inside count_times_between_actions.")
     times = _get_times_between_actions(file)
-    _write_times_between_actions(file, times)
+    _write_times_between_actions(file, times, transform)
 
 def _get_times_between_actions(file):
+    log.debug("Inside _get_times_between_actions.")
+
     # dictionary for usernames and time of last found action for the username
     users = {}
     # list with times between actions for each line of dataset
@@ -56,7 +65,10 @@ def _get_times_between_actions(file):
 
     return times
 
-def _write_times_between_actions(file, actions):
+def _write_times_between_actions(file, actions, transform):
+    log.debug("Inside _write_times_between_actions.")
+
+
     f_in = open(file, 'r', encoding="utf-8")
     csv_r = csv.reader(f_in, delimiter=CONST.SEPARATOR)
     # because of windows, we add the newline parameter. otherwise every other line would be empty. works with linux too
@@ -72,8 +84,9 @@ def _write_times_between_actions(file, actions):
     f_in.close()
     f_out.close()
 
-    os.remove(file)
-    os.rename(file + '_times', file)
+    if not transform:
+        os.remove(file)
+        os.rename(file + '_times', file)
 
 def check_file_format(file):
     # TODO mozna tady checkovat jestli jde parse csv?
@@ -126,6 +139,9 @@ def _is_first_line_header(file):
                 return False
 
 def _get_n_of_attacks(n_of_attacks, last_cycle):
+    log.debug("Inside _get_n_of_attacks.")
+
+
     if last_cycle:
         return 0, n_of_attacks 
     else:
@@ -134,6 +150,9 @@ def _get_n_of_attacks(n_of_attacks, last_cycle):
         return n_of_attacks, _n_of_attacks
 
 def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_weeks):
+    log.debug("Inside generate_to_files.")
+
+
     tmp_files = []
     last_time = -1
     last_cycle = False
@@ -154,20 +173,23 @@ def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_weeks)
     _remove_tmp_files(tmp_files)
 
 def _get_last_time(file: str, last_cycle: bool) -> str:
+    log.debug("Inside _get_last_time.")
+
+
     if last_cycle:
         # we don't need the last time from previous file if this cycle is last
         return
     last_line = _get_last_line(file)
     last_line_split = last_line.split(CONST.SEPARATOR)
-    # print(last_line_split)
 
-    # be conscious of data types! here we return string
     last_time = last_line_split[CONST.TIMESTAMP_IDX]
     last_time = last_time.replace('"', '')
-    # print(last_time)
+
     return last_time
 
 def _join_tmp_files(tmp_files_list, out_file):
+    log.debug("Inside _join_tmp_files.")
+
     column_names_written = False
     with open(out_file, 'w', encoding="utf-8") as f_out:
         for f_name in tmp_files_list:
@@ -187,12 +209,11 @@ def _remove_tmp_files(tmp_files_list):
         os.remove(file)
 
 def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
+    log.debug("_generate_to_file.")
+
     f_in = open(attack_file, 'r', encoding="utf-8")
     attacks = list(csv.reader(f_in, delimiter=CONST.SEPARATOR))
     f_in.close()
-
-    # f_in = open(attack_file, "r", encoding="utf-8")
-    # attacks = f_in.readlines()
 
     # following line removes the first line from attack file (column names)
     attacks.pop(0)
@@ -202,34 +223,20 @@ def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
     f_in.close()
     # idea: we open these datasets every week in n_of_weeks, maybe we can open it once in generate_to_files?
     # if not, maybe put these reads/writes into own funcs
-    # f_log = open(log_file, "r", encoding="utf-8")
-    # contents = f_log.readlines()
-    # f_log.close()
 
-    # we will access individual columns often, so we must make strings into list
-    # attacks_split = _split_list(attacks)
-    # _contents_split = _split_list(contents)
-
-    # free up memory
-    # del contents
-    # del attacks
     gc.collect()
 
     # we need to rewrite the DATUM column for joining datasets together, but only if this is not the first tmp file created
     if last_time != -1:
-        # contents_split = _transform_times(_contents_split, last_time)
         contents = _transform_times(_contents, last_time)
     else:
-        # contents_split = _contents_split
         contents = _contents
 
     # free up memory
-    # del _contents_split
     del _contents
     gc.collect()
 
     # we also need to know intervals between attacks in a specific list
-    # attack_intervals = _get_attack_intervals(attacks_split)
     attack_intervals = _get_attack_intervals(attacks)
     n = 0
 
@@ -247,7 +254,7 @@ def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
             attack[CONST.TIMESTAMP_IDX] = str(time + attack_intervals[attack_n])
             time = int(attack[CONST.TIMESTAMP_IDX])
 
-        # inserting individual attacks into the contents_split list representing the file
+        # inserting individual attacks into the contents list representing the file
         # maybe put into own func
         for attack_n, attack in enumerate(attacks_clean):
             if attack_n == 0:
@@ -262,14 +269,8 @@ def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
 
         n = n + 1
 
-    # f_out = open(out_file, "w", encoding="utf-8")
-    # # we need to join the earlier split file
-    # f_out.writelines(_join_list(contents))
-    # f_out.close()
-
     f_out = open(out_file, 'w', encoding="utf-8", newline='')
     csv_w = csv.writer(f_out, delimiter=CONST.SEPARATOR, quoting=csv.QUOTE_ALL)
-
 
     for line in contents:
         csv_w.writerow(line)
@@ -279,7 +280,7 @@ def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
     # idea: return last time stamp here together with out_file, and maybe remove _get_last_time?
     return out_file
 
-def _transform_times(list_orig, last_time):
+def _transform_times(list_orig, last_time):    
     """Transform (rewrite) the timestamps in input list by an offset.
 
     Args:
@@ -289,6 +290,8 @@ def _transform_times(list_orig, last_time):
     Returns:
         list: a list that is identical to the original but with timestamps transformed
     """
+
+    log.debug("Inside _transform_times.")
 
     list_mod = []
 
@@ -312,6 +315,12 @@ def _get_next_index(logs, time):
     Returns:
         int: index at which the attack can be inserted
     """
+    ## idea
+    # toto by se dalo zrychlit
+    # nyni se pro KAZDY utok ktery se ma vlozit do logu hleda index od 0
+    # my ale vime, ze napr 2. utok musi byt ZA tim prvnim utokem, takze by slo nejak pres argument pridat odkud hledat
+    # ten argument musi byt nejaky index, od ktereho ma smysl prohledavat
+    log.debug("Inside _get_next_index")
 
     index_return = -1
     for index, item in enumerate(logs):
@@ -338,6 +347,8 @@ def _get_attack_intervals(attacks):
     Returns:
         list: for every attack in the attacks list, there will be an integer time interval
     """
+
+    log.debug("Inside _get_attack_intervals.")
 
     intervals = []
     previous_attack = attacks[0]
