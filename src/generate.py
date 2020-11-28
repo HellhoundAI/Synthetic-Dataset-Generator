@@ -7,10 +7,8 @@ class CONST(object):
     __slots__ = ()
 
     SEPARATOR = ','
-    # maybe first line as a list (either with or without time_from_last_action column)
-    # then we could check "if X in CONST.FIRST_LINE" etc
-    # check if this works on windows
-    FIRST_LINE = '"id_norm","user","timestamp_norm","url","ip","parameters_hash","asn","bgp_prefix","as_name","net_name","country_code","attack"\n'
+    FIRST_LINE = ['"id_norm","user","timestamp_norm","url","ip","parameters_hash","asn","bgp_prefix","as_name","net_name","country_code","attack"\n',
+                    '"id_norm","user","timestamp_norm","url","ip","parameters_hash","asn","bgp_prefix","as_name","net_name","country_code","attack","time_from_last_action"\n']
     # indices for certain columns in datasets that are often used in code
     TIMESTAMP_IDX = 2
     USER_IDX = 1
@@ -23,12 +21,15 @@ def set_debug(value):
     log.debug("Debug mode active!")
 
 def count_times_between_actions(file, transform):
-    log.debug("Inside count_times_between_actions.")
+    log.debug("Started count_times_between_actions.")
+
     times = _get_times_between_actions(file)
     _write_times_between_actions(file, times, transform)
 
+    log.debug("Finished count_times_between_actions.")
+
 def _get_times_between_actions(file):
-    log.debug("Inside _get_times_between_actions.")
+    log.debug("Started _get_times_between_actions.")
 
     # dictionary for usernames and time of last found action for the username
     users = {}
@@ -63,11 +64,12 @@ def _get_times_between_actions(file):
                 times.append(0)
                 users[user] = time_now
 
+    log.debug("Finished _get_times_between_actions.")
+
     return times
 
 def _write_times_between_actions(file, actions, transform):
-    log.debug("Inside _write_times_between_actions.")
-
+    log.debug("Started _write_times_between_actions.")
 
     f_in = open(file, 'r', encoding="utf-8")
     csv_r = csv.reader(f_in, delimiter=CONST.SEPARATOR)
@@ -75,7 +77,6 @@ def _write_times_between_actions(file, actions, transform):
     # we also probably want to delete the IN file here, rename the OUT file to the name of IN file
     f_out = open(file + '_times', 'w', encoding="utf-8", newline='')
     csv_w = csv.writer(f_out, delimiter=CONST.SEPARATOR, quoting=csv.QUOTE_ALL)
-
 
     for line_n, line in enumerate(csv_r):
         line.append(str(actions[line_n]))
@@ -88,7 +89,11 @@ def _write_times_between_actions(file, actions, transform):
         os.remove(file)
         os.rename(file + '_times', file)
 
+    log.debug("Finished _write_times_between_actions.")
+
 def check_file_format(file):
+    log.debug("Started check_file_format.")
+
     # TODO mozna tady checkovat jestli jde parse csv?
     # kdyztak SO "Check if file has a CSV format with Python"
     status = 0
@@ -98,65 +103,85 @@ def check_file_format(file):
     if _is_first_line_header(file):
         status = status + 2
 
+    log.debug("Finished check_file_format.")
+
     if status == 0:
-        print(f"First line of file is not a correct format of column names ({CONST.FIRST_LINE}).\nPenultimate line must end with a newline character, i.e. last line must be empty.")
+        print(f"First line of file is not a correct format of column names\n{CONST.FIRST_LINE[0]}OR\n{CONST.FIRST_LINE[1]}Penultimate line must end with a newline character, i.e. last line must be empty.")
     elif status == 1:
-        print(f"First line of file is not a correct format of column names ({CONST.FIRST_LINE}).")
+        print(f"First line of file is not a correct format of column names\n{CONST.FIRST_LINE[0]}OR\n{CONST.FIRST_LINE[1]}")
     elif status == 2:
         print("Penultimate line must end with a newline character, i.e. last line must be empty.")
     elif status == 3:
         return True
 
 def _is_last_line_empty(file):
+    log.debug("Started _is_last_line_empty.")
+
     last_line = _get_last_line(file)
 
     if last_line[-1] == '\n':
+        log.debug("Finished _is_last_line_empty.")
+
         return True
     else:
+        log.debug("Finished _is_last_line_empty.")
+
         return False
 
 # extra fast (binary) check of last line in file
-# might not work on windows (need testing)
 def _get_last_line(file):
+    log.debug("Started _get_last_line.")
+
     # add encoding utf-8? or not needed in binary?
     with open(file, 'rb') as f:
         f.seek(-2, os.SEEK_END)
 
         while f.read(1) != b'\n':
             f.seek(-2, os.SEEK_CUR)
+
+        log.debug("Finished _get_last_line.")
         
-        # print(repr(f.readline().decode()))
         return f.readline().decode()
 
 def _is_first_line_header(file):
+    log.debug("Started _is_first_line_header.")
+
     with open(file, 'r', encoding="utf-8") as f:
         for line in f:
-            if line == CONST.FIRST_LINE:
+            if line in CONST.FIRST_LINE:
+                log.debug("Finished _is_first_line_header.")
+
                 return True
             else:
-                print(line)
-                print(CONST.FIRST_LINE)
+                log.debug("Finished _is_first_line_header.")
+
                 return False
 
 def _get_n_of_attacks(n_of_attacks, last_cycle):
-    log.debug("Inside _get_n_of_attacks.")
-
+    log.debug("Started _get_n_of_attacks.")
 
     if last_cycle:
+        log.debug("Finished _get_n_of_attacks.")
+
         return 0, n_of_attacks 
     else:
         _n_of_attacks = randint(0, n_of_attacks)
         n_of_attacks = n_of_attacks - _n_of_attacks
+
+        log.debug("Finished _get_n_of_attacks.")
         return n_of_attacks, _n_of_attacks
 
 def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_weeks):
-    log.debug("Inside generate_to_files.")
-
+    log.debug("Started generate_to_files.")
 
     tmp_files = []
     last_time = -1
     last_cycle = False
     week = 0
+
+    attacks = _load_attack_file(attack_file)
+    logs = _load_log_file(log_file)
+    attack_intervals = _get_attack_intervals(attacks)
 
     while week < int(n_of_weeks): 
         # checking for the last cycle
@@ -164,7 +189,7 @@ def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_weeks)
             last_cycle = True
 
         n_of_attacks, _n_of_attacks = _get_n_of_attacks(n_of_attacks, last_cycle)
-        tmp_files.append(_generate_to_file(attack_file, log_file, out_file + str(week), _n_of_attacks, last_time))
+        tmp_files.append(_generate_to_file(attacks, attack_intervals, logs, out_file + str(week), _n_of_attacks, last_time))
         last_time = _get_last_time(tmp_files[week], last_cycle)
 
         week = week + 1
@@ -172,9 +197,10 @@ def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_weeks)
     _join_tmp_files(tmp_files, out_file)
     _remove_tmp_files(tmp_files)
 
-def _get_last_time(file: str, last_cycle: bool) -> str:
-    log.debug("Inside _get_last_time.")
+    log.debug("Finished generate_to_files.")
 
+def _get_last_time(file, last_cycle):
+    log.debug("Started _get_last_time.")
 
     if last_cycle:
         # we don't need the last time from previous file if this cycle is last
@@ -185,10 +211,12 @@ def _get_last_time(file: str, last_cycle: bool) -> str:
     last_time = last_line_split[CONST.TIMESTAMP_IDX]
     last_time = last_time.replace('"', '')
 
+    log.debug("Finished _get_last_time.")
+
     return last_time
 
 def _join_tmp_files(tmp_files_list, out_file):
-    log.debug("Inside _join_tmp_files.")
+    log.debug("Started _join_tmp_files.")
 
     column_names_written = False
     with open(out_file, 'w', encoding="utf-8") as f_out:
@@ -204,27 +232,43 @@ def _join_tmp_files(tmp_files_list, out_file):
 
                     f_out.write(line)
 
+    log.debug("Finished _join_tmp_files.")
+
 def _remove_tmp_files(tmp_files_list):
+    log.debug("Started _remove_tmp_files.")
+
     for file in tmp_files_list:
         os.remove(file)
 
-def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
-    log.debug("_generate_to_file.")
+    log.debug("Finished _remove_tmp_files.")
+
+def _load_attack_file(attack_file):
+    log.debug("Started _load_attack_file.")
+    # chceme delat jen jednou, attacks se nemeni
 
     f_in = open(attack_file, 'r', encoding="utf-8")
     attacks = list(csv.reader(f_in, delimiter=CONST.SEPARATOR))
-    f_in.close()
-
     # following line removes the first line from attack file (column names)
     attacks.pop(0)
+    f_in.close()
+
+    log.debug("Finished _load_attack_file.")
+
+    return attacks
+
+def _load_log_file(log_file):
+    log.debug("Started _load_log_file.")
 
     f_in = open(log_file, 'r', encoding="utf-8")
-    _contents = list(csv.reader(f_in, delimiter=CONST.SEPARATOR))
+    logs = list(csv.reader(f_in, delimiter=CONST.SEPARATOR))
     f_in.close()
-    # idea: we open these datasets every week in n_of_weeks, maybe we can open it once in generate_to_files?
-    # if not, maybe put these reads/writes into own funcs
 
-    gc.collect()
+    log.debug("Finished _load_log_file.")
+
+    return logs
+
+def _generate_to_file(attacks, attack_intervals, _contents, out_file, n_of_attacks, last_time):
+    log.debug("Started _generate_to_file.")
 
     # we need to rewrite the DATUM column for joining datasets together, but only if this is not the first tmp file created
     if last_time != -1:
@@ -236,38 +280,31 @@ def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
     del _contents
     gc.collect()
 
-    # we also need to know intervals between attacks in a specific list
-    attack_intervals = _get_attack_intervals(attacks)
     n = 0
-
     while n < int(n_of_attacks):
-
         index = randint(1, len(contents) - 1)
         time = int(contents[index][CONST.TIMESTAMP_IDX])
 
         # we don't want to overwrite the original attacks list, with more attacks it would create trouble
         attacks_clean = copy.deepcopy(attacks)
-
         # transformation of the DATUM column of the individual attacks based on the randomly chosen index
-        # maybe put into own func
-        for attack_n, attack in enumerate(attacks_clean):
-            attack[CONST.TIMESTAMP_IDX] = str(time + attack_intervals[attack_n])
-            time = int(attack[CONST.TIMESTAMP_IDX])
-
+        attacks_shifted = _transform_attacks(attacks_clean, time, attack_intervals)
         # inserting individual attacks into the contents list representing the file
-        # maybe put into own func
-        for attack_n, attack in enumerate(attacks_clean):
-            if attack_n == 0:
-                # we insert the first attack at the index chosen randomly earlier
-                pass
-            else:
-                # we need to keep intervals between each attack
-                next_index = _get_next_index(contents, attack[CONST.TIMESTAMP_IDX])
-                index = next_index
-
-            contents.insert(index, attack)
+        _insert_attacks(attacks_shifted, index, contents)
 
         n = n + 1
+
+    log.debug("Finished generating. Now writing the changes into a file ...")
+
+    _write_contents_to_file(out_file, contents)
+
+    log.debug("Finished _generate_to_file.")
+
+    # idea: return last time stamp here together with out_file, and maybe remove _get_last_time?
+    return out_file
+
+def _write_contents_to_file(out_file, contents):
+    log.debug("Started _write_contents_to_file.")
 
     f_out = open(out_file, 'w', encoding="utf-8", newline='')
     csv_w = csv.writer(f_out, delimiter=CONST.SEPARATOR, quoting=csv.QUOTE_ALL)
@@ -277,10 +314,25 @@ def _generate_to_file(attack_file, log_file, out_file, n_of_attacks, last_time):
 
     f_out.close()
 
-    # idea: return last time stamp here together with out_file, and maybe remove _get_last_time?
-    return out_file
+    log.debug("Finished _write_contents_to_file.")
 
-def _transform_times(list_orig, last_time):    
+def _insert_attacks(attacks, index, contents):
+    log.debug("Started _insert_attacks.")
+
+    for attack_n, attack in enumerate(attacks):
+            if attack_n == 0:
+                # we insert the first attack at the index chosen randomly earlier
+                pass
+            else:
+                # we need to keep intervals between each attack
+                next_index = _get_next_index(contents, attack[CONST.TIMESTAMP_IDX], index)
+                index = next_index
+
+            contents.insert(index, attack)
+
+    log.debug("Finished _insert_attacks.")
+
+def _transform_times(list_orig, last_time):
     """Transform (rewrite) the timestamps in input list by an offset.
 
     Args:
@@ -291,7 +343,7 @@ def _transform_times(list_orig, last_time):
         list: a list that is identical to the original but with timestamps transformed
     """
 
-    log.debug("Inside _transform_times.")
+    log.debug("Started _transform_times.")
 
     list_mod = []
 
@@ -303,33 +355,46 @@ def _transform_times(list_orig, last_time):
         line[CONST.TIMESTAMP_IDX] = str(line_n + int(last_time))
         list_mod.append(line)
 
+    log.debug("Finished _transform_times.")
+
     return list_mod
 
-def _get_next_index(logs, time):
+def _transform_attacks(attacks_orig, time, attack_intervals):
+    # maybe merge with transform_times
+    log.debug("Started _transform_attacks.")
+
+    attacks_mod = []
+
+    for line_n, line in enumerate(attacks_orig):
+        line[CONST.TIMESTAMP_IDX] = str(time + attack_intervals[line_n])
+        attacks_mod.append(line)
+        time = int(line[CONST.TIMESTAMP_IDX])
+
+    log.debug("Finished _transform_attacks.")
+
+    return attacks_mod
+
+def _get_next_index(logs, time, last_index):
     """Get the index in which to insert an attack.
 
     Args:
         logs (list): A list representing the log file where we want to insert into.
         time (str): The time of attack that is to be inserted. Will be converted to int, so must be a number.
+        last_index (int): The index from which to search, so we don't have to search the whole logs again from 0.
 
     Returns:
         int: index at which the attack can be inserted
     """
-    ## idea
-    # toto by se dalo zrychlit
-    # nyni se pro KAZDY utok ktery se ma vlozit do logu hleda index od 0
-    # my ale vime, ze napr 2. utok musi byt ZA tim prvnim utokem, takze by slo nejak pres argument pridat odkud hledat
-    # ten argument musi byt nejaky index, od ktereho ma smysl prohledavat
-    log.debug("Inside _get_next_index")
+    log.debug("Started _get_next_index")
 
     index_return = -1
-    for index, item in enumerate(logs):
-        # we search for the next possible index where to insert the next attack
-        # that means where the DATUM will be equal or greater than the time of attack we want to insert
-        # at index = 0 are the column names, we don't want them
-        if index != 0 and int(item[CONST.TIMESTAMP_IDX]) >= int(time):
+    # funkce len() ma slozitost O(1)
+    for index in range(last_index, len(logs)):
+        if int(logs[index][CONST.TIMESTAMP_IDX]) >= int(time):
             index_return = index
             break
+
+    log.debug("Finished _get_next_index")
 
     if index_return == -1:
         # if the index_return is still -1, it means we must insert at the end of file
@@ -348,7 +413,7 @@ def _get_attack_intervals(attacks):
         list: for every attack in the attacks list, there will be an integer time interval
     """
 
-    log.debug("Inside _get_attack_intervals.")
+    log.debug("Started _get_attack_intervals.")
 
     intervals = []
     previous_attack = attacks[0]
@@ -356,5 +421,7 @@ def _get_attack_intervals(attacks):
     for attack in attacks:
         intervals.append(int(attack[CONST.TIMESTAMP_IDX]) - int(previous_attack[CONST.TIMESTAMP_IDX]))
         previous_attack = attack
+
+    log.debug("Finished _get_attack_intervals.")
 
     return intervals
