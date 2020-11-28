@@ -8,11 +8,11 @@ log = logging.getLogger("start")
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-af", "--attack_file", help="The text file where attack is stored.", required=True)
-parser.add_argument("-lf", "--log_file", help="The text file with network traffic logs into which attacks should be generated - must represent 1 week of data.", required=True)
+parser.add_argument("-lf", "--log_file", help="The text file with network traffic logs into which attacks should be generated - must represent 2 weeks of data.", required=True)
 parser.add_argument("-of", "--out_file", help="The output text file which will be created with the generator.", required=True)
 parser.add_argument("-a", "--attacks", help="How many attacks should be generated (in total).", 
                     type=int, required=True)
-parser.add_argument("-w", "--weeks", help="How many weeks of data should be generated.", 
+parser.add_argument("-p", "--periods", help="How many periods (1 period = 2 weeks = 14 days) of data should be generated.", 
                     type=int, required=True)
 parser.add_argument("-t", "--transform", help="This sets on the TRANSFORM mode. The only thing the program will do is count the time between actions for LOG FILE. It will create a new file.", action="store_true")
 parser.add_argument("-d", "--debug", help="Sets on the DEBUG mode. The program will print more information.", action="store_true")
@@ -42,8 +42,8 @@ if not os.path.isfile(args.attack_file):
 if args.attacks <= 0:
     raise ValueError("Number of attacks must be greater than 0!")
 
-if args.weeks <= 0:
-    raise ValueError("Number of weeks must be greater than 0!")
+if args.periods <= 0:
+    raise ValueError("Number of periods must be greater than 0!")
 
 
 log.info(f"Checking the file format of {args.attack_file} ...")
@@ -59,8 +59,8 @@ else:
     exit()
     
 
-log.info(f"Generating {args.attacks} attacks from {args.attack_file} into network logs from {args.log_file} ...\nThe output log file {args.out_file} will represent {args.weeks} weeks of data.")
-generate_to_files(args.attack_file, args.log_file, args.out_file, args.attacks, args.weeks)
+log.info(f"Generating {args.attacks} attacks from {args.attack_file} into network logs from {args.log_file} ...\nThe output log file {args.out_file} will represent {args.periods} periods (1 period = 2 weeks = 14 days) of data.")
+generate_to_files(args.attack_file, args.log_file, args.out_file, args.attacks, args.periods)
 log.info("Finished generating attacks!\n")
 
 

@@ -171,28 +171,29 @@ def _get_n_of_attacks(n_of_attacks, last_cycle):
         log.debug("Finished _get_n_of_attacks.")
         return n_of_attacks, _n_of_attacks
 
-def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_weeks):
+def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_periods):
     log.debug("Started generate_to_files.")
 
     tmp_files = []
     last_time = -1
     last_cycle = False
-    week = 0
+    # period = 14 days time period
+    period = 0
 
     attacks = _load_attack_file(attack_file)
     logs = _load_log_file(log_file)
     attack_intervals = _get_attack_intervals(attacks)
 
-    while week < int(n_of_weeks): 
+    while period < int(n_of_periods): 
         # checking for the last cycle
-        if week + 1 == n_of_weeks:
+        if period + 1 == n_of_periods:
             last_cycle = True
 
         n_of_attacks, _n_of_attacks = _get_n_of_attacks(n_of_attacks, last_cycle)
-        tmp_files.append(_generate_to_file(attacks, attack_intervals, logs, out_file + str(week), _n_of_attacks, last_time))
-        last_time = _get_last_time(tmp_files[week], last_cycle)
+        tmp_files.append(_generate_to_file(attacks, attack_intervals, logs, out_file + str(period), _n_of_attacks, last_time))
+        last_time = _get_last_time(tmp_files[period], last_cycle)
 
-        week = week + 1
+        period = period + 1
 
     _join_tmp_files(tmp_files, out_file)
     _remove_tmp_files(tmp_files)
