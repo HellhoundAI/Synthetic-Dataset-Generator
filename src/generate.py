@@ -70,6 +70,7 @@ def _get_times_between_actions(file):
 
 def _write_times_between_actions(file, actions, transform):
     log.debug("Started _write_times_between_actions.")
+    log.info("Writing times between actions into the output file (this will take a while) ...")
 
     f_in = open(file, 'r', encoding="utf-8")
     csv_r = csv.reader(f_in, delimiter=CONST.SEPARATOR)
@@ -185,6 +186,7 @@ def generate_to_files(attack_file, log_file, out_file, n_of_attacks, n_of_period
     attack_intervals = _get_attack_intervals(attacks)
 
     while period < int(n_of_periods): 
+        log.info(f"Generating period no. {period + 1} ...")
         # checking for the last cycle
         if period + 1 == n_of_periods:
             last_cycle = True
@@ -259,6 +261,7 @@ def _load_attack_file(attack_file):
 
 def _load_log_file(log_file):
     log.debug("Started _load_log_file.")
+    log.info("Loading the log file into memory ...")
 
     f_in = open(log_file, 'r', encoding="utf-8")
     logs = list(csv.reader(f_in, delimiter=CONST.SEPARATOR))
@@ -306,6 +309,7 @@ def _generate_to_file(attacks, attack_intervals, _contents, out_file, n_of_attac
 
 def _write_contents_to_file(out_file, contents):
     log.debug("Started _write_contents_to_file.")
+    log.info("Writing changes into a temporary file ...")
 
     f_out = open(out_file, 'w', encoding="utf-8", newline='')
     csv_w = csv.writer(f_out, delimiter=CONST.SEPARATOR, quoting=csv.QUOTE_ALL)
