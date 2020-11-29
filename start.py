@@ -8,11 +8,11 @@ log = logging.getLogger("start")
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-af", "--attack_file", help="The text file where attack is stored.", required=True)
-parser.add_argument("-lf", "--log_file", help="The text file with network traffic logs into which attacks should be generated - must represent 2 weeks of data.", required=True)
+parser.add_argument("-lf", "--log_file", help="The text file with network traffic logs into which attacks should be generated.", required=True)
 parser.add_argument("-of", "--out_file", help="The output text file which will be created with the generator.", required=True)
 parser.add_argument("-a", "--attacks", help="How many attacks should be generated (in total).", 
                     type=int, required=True)
-parser.add_argument("-p", "--periods", help="How many periods (1 period = 2 weeks = 14 days) of data should be generated.", 
+parser.add_argument("-p", "--periods", help="How many time periods of data should be generated. It is assumed the log file represents 1 time period. So if the log file represents 14 days, -p 1 will generate 14 days of data, -p 2 will generate 2x14 = 28 days of data etc.", 
                     type=int, required=True)
 parser.add_argument("-t", "--transform", help="This sets on the TRANSFORM mode. The only thing the program will do is count the time between actions for LOG FILE. It will create a new file.", action="store_true")
 parser.add_argument("-d", "--debug", help="Sets on the DEBUG mode. The program will print more information.", action="store_true")
