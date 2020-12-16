@@ -9,9 +9,9 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("-af", "--attack_file", help="The text file where attack is stored.", required=False)
 parser.add_argument("-lf", "--log_file", help="The text file with network traffic logs into which attacks should be generated.", required=False)
-parser.add_argument("-ca", "--cyber_attack", help="If this is set on, the program will look for a log and attack file for cyberattack in 'logs' folder.", action="store_true")
-parser.add_argument("-sa", "--simple_attack", help="If this is set on, the program will look for a log and attack file for simple automated attack in 'logs' folder.", action="store_true")
-parser.add_argument("-aa", "--advanced_attack", help="If this is set on, the program will look for a log and attack file for advanced automated attack in 'logs' folder.", action="store_true")
+parser.add_argument("-ca", "--cyber_attack", help="If this is set on, the program will look for a log and attack file of cyberattack in 'logs' folder.", action="store_true")
+parser.add_argument("-sa", "--simple_attack", help="If this is set on, the program will look for a log and attack file of simple automated attack in 'logs' folder.", action="store_true")
+parser.add_argument("-aa", "--advanced_attack", help="If this is set on, the program will look for a log and attack file of advanced automated attack in 'logs' folder.", action="store_true")
 parser.add_argument("-of", "--out_file", help="The output text file which will be created with the generator.", required=True)
 parser.add_argument("-a", "--attacks", help="How many attacks should be generated (in total).", 
                     type=int, required=True)
