@@ -224,7 +224,7 @@ def _join_tmp_files(tmp_files_list, out_file):
     column_names_written = False
     with open(out_file, 'w', encoding="utf-8") as f_out:
         for f_name in tmp_files_list:
-            with open(f_name) as f_in:
+            with open(f_name, encoding="utf-8") as f_in:
                 for line_n, line in enumerate(f_in):
                     # we want only the first line of the first file (column names) to be written
                     if line_n == 0:

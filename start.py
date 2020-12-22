@@ -17,7 +17,7 @@ parser.add_argument("-a", "--attacks", help="How many attacks should be generate
                     type=int, required=True)
 parser.add_argument("-p", "--periods", help="How many time periods of data should be generated. It is assumed the log file represents 1 time period. So if the log file represents 14 days, -p 1 will generate 14 days of data, -p 2 will generate 2x14 = 28 days of data etc.", 
                     type=int, required=True)
-# parser.add_argument("-t", "--transform", help="This sets on the TRANSFORM mode. The only thing the program will do is count the time between actions for LOG FILE. It will create a new file.", action="store_true")
+parser.add_argument("-t", "--transform", help="This sets on the TRANSFORM mode. The only thing the program will do is count the time between actions for LOG FILE. It will create a new file. NOT TESTED PROPERLY. USE ON OWN RISK.", action="store_true")
 parser.add_argument("-d", "--debug", help="Sets on the DEBUG mode. The program will print more information.", action="store_true")
 # TODO use mutually exclusive groups for the modes/other args
 # group 1 - TRANSFORM - t, d, lf
@@ -49,13 +49,13 @@ if args.cyber_attack or args.simple_attack or args.advanced_attack:
 if not os.path.isfile(args.log_file):
     raise ValueError(f"Log file {args.log_file} does not exist/is not a file!")
 
-# if args.transform:
-#     print("Transform mode active!")
-#     print(f"Calculating time between user actions for {args.log_file} ...")
-#     count_times_between_actions(args.log_file, args.transform)
-#     print("Finished calculating!\n")
-#     print("All done!\n")
-#     exit()
+if args.transform:
+    print("Transform mode active!")
+    print(f"Calculating time between user actions for {args.log_file} ...")
+    count_times_between_actions(args.log_file, args.transform)
+    print("Finished calculating!\n")
+    print("All done!\n")
+    exit()
 
 if not os.path.isfile(args.attack_file):
     raise ValueError(f"Attack file {args.attack_file} does not exist/is not a file!")
