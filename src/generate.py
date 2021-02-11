@@ -20,6 +20,18 @@ def set_debug(value):
     log.setLevel(logging.DEBUG)
     log.debug("Debug mode active!")
 
+def count_actions(file, transform):
+    log.debug("Started count_actions.")
+
+
+    log.debug("Finished count_actions.")
+
+def count_unique_actions(file, transform):
+    log.debug("Started count_unique_actions.")
+
+
+    log.debug("Finished count_unique_actions.")
+
 def count_times_between_actions(file, transform):
     log.debug("Started count_times_between_actions.")
 
