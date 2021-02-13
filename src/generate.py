@@ -10,8 +10,9 @@ class CONST(object):
     FIRST_LINE = ['"id_norm","user","timestamp_norm","url","ip","parameters_hash","asn","bgp_prefix","as_name","net_name","country_code","attack"\n',
                     '"id_norm","user","timestamp_norm","url","ip","parameters_hash","asn","bgp_prefix","as_name","net_name","country_code","attack","time_from_last_action"\n']
     # indices for certain columns in datasets that are often used in code
-    TIMESTAMP_IDX = 2
     USER_IDX = 1
+    TIMESTAMP_IDX = 2
+    URL_IDX = 3
 
 CONST = CONST()
 log = logging.getLogger("generate")
@@ -20,9 +21,14 @@ def set_debug(value):
     log.setLevel(logging.DEBUG)
     log.debug("Debug mode active!")
 
+
+# TODO upravit v CONST first line
 def count_actions(file, transform):
     log.debug("Started count_actions.")
 
+    # timestamp % 86400 (60s x 60min x 24h) == 0 - to znamena dalsi den
+    actions = _get_actions(file)
+    _write_times_between_actions(file, actions, transform)
 
     log.debug("Finished count_actions.")
 
@@ -39,6 +45,38 @@ def count_times_between_actions(file, transform):
     _write_times_between_actions(file, times, transform)
 
     log.debug("Finished count_times_between_actions.")
+
+def _get_actions(file):
+    log.debug("Started _get_actions.")
+
+    # dictionary for usernames and the last count of actions
+    users = {}
+    # list with counts of the actions
+    actions = []
+
+    with open(file, 'r', encoding='utf-8') as f_in:
+        csv_r = csv.reader(f_in, delimiter=CONST.SEPARATOR)
+        for line_n, line in enumerate(csv_r):
+            if line_n == 0:
+                #first line is the names of columns
+                actions.append("user_actions_per_day")
+                continue
+
+            user = line[CONST.USER_IDX]
+            # action = line[CONST.URL_IDX]
+
+            if user in users:
+                users[user] = users[user] + 1
+                actions.append(users[user])
+            else:
+                # first case with this username
+                actions.append(1)
+                users[user] = 1
+
+    log.debug("Finished _get_actions.")
+
+    return actions
+
 
 def _get_times_between_actions(file):
     log.debug("Started _get_times_between_actions.")
@@ -98,9 +136,9 @@ def _write_times_between_actions(file, actions, transform):
     f_in.close()
     f_out.close()
 
-    if not transform:
-        os.remove(file)
-        os.rename(file + '_times', file)
+    # if not transform:
+    #     os.remove(file)
+    #     os.rename(file + '_times', file)
 
     log.debug("Finished _write_times_between_actions.")
 

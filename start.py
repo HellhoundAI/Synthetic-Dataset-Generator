@@ -46,10 +46,14 @@ if args.cyber_attack or args.simple_attack or args.advanced_attack:
         args.log_file = "logs/log_advanced_automated_attack.csv"
         args.attack_file = "logs/log_advanced_automated_attack_only_attack.csv"
 
-if not os.path.isfile(args.log_file):
+# first half checks if the argument is not empty (None), because if it is, that means the user chose not to use the argument (because it is not required)
+# so in the second half, we know that something was passed as an argument for log_file
+# so we check if that is an existing file
+if args.log_file is not None and not os.path.isfile(args.log_file):
     raise ValueError(f"Log file {args.log_file} does not exist/is not a file!")
 
 if args.transform:
+    ### TODO print prevest na log.info/debug
     print("Transform mode active!")
     print(f"Calculating time between user actions for {args.log_file} ...")
     count_times_between_actions(args.log_file, args.transform)
@@ -61,7 +65,7 @@ if args.transform:
     print("All done!\n")
     exit()
 
-if not os.path.isfile(args.attack_file):
+if args.attack_file is not None and not os.path.isfile(args.attack_file):
     raise ValueError(f"Attack file {args.attack_file} does not exist/is not a file!")
 
 if args.attacks <= 0:
@@ -71,34 +75,36 @@ if args.periods <= 0:
     raise ValueError("Number of periods must be greater than 0!")
 
 
-log.info(f"Checking the file format of {args.attack_file} ...")
-if check_file_format(args.attack_file):
-    log.info("OK!\n")
-else:
-    exit()
+# log.info(f"Checking the file format of {args.attack_file} ...")
+# if check_file_format(args.attack_file):
+#     log.info("OK!\n")
+# else:
+#     exit()
 
-log.info(f"Checking the file format of {args.log_file} ...")
-if check_file_format(args.log_file):
-    log.info("OK!\n")
-else:
-    exit()
+# log.info(f"Checking the file format of {args.log_file} ...")
+# if check_file_format(args.log_file):
+#     log.info("OK!\n")
+# else:
+#     exit()
     
 
-log.info(f"Generating {args.attacks} attacks from {args.attack_file} into network logs from {args.log_file} ...\nThe output log file {args.out_file} will represent {args.periods} periods (1 period = 2 weeks = 14 days) of data.")
-generate_to_files(args.attack_file, args.log_file, args.out_file, args.attacks, args.periods)
-log.info("Finished generating attacks!\n")
+# log.info(f"Generating {args.attacks} attacks from {args.attack_file} into network logs from {args.log_file} ...\nThe output log file {args.out_file} will represent {args.periods} periods (1 period = 2 weeks = 14 days) of data.")
+# generate_to_files(args.attack_file, args.log_file, args.out_file, args.attacks, args.periods)
+# log.info("Finished generating attacks!\n")
 
 
-log.info(f"Calculating time between user actions for {args.out_file} ...")
-count_times_between_actions(args.out_file, args.transform)
-log.info("Finished calculating!\n")
+### TODO add an check for if the out file exists or not!
+
+# log.info(f"Calculating time between user actions for {args.out_file} ...")
+# count_times_between_actions(args.out_file, args.transform)
+# log.info("Finished calculating!\n")
 
 log.info(f"Calculating number of user actions per day for {args.out_file} ...")
 count_actions(args.out_file, args.transform)
 log.info("Finished calculating!\n")
 
-log.info(f"Calculating unique user actions per day for {args.out_file} ...")
-count_unique_actions(args.out_file, args.transform)
-log.info("Finished calculating!\n")
+# log.info(f"Calculating unique user actions per day for {args.out_file} ...")
+# count_unique_actions(args.out_file, args.transform)
+# log.info("Finished calculating!\n")
 
 log.info("All done!\n")
