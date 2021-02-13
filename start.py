@@ -1,4 +1,4 @@
-from src.generate import generate_to_files, check_file_format, count_times_between_actions, set_debug, count_actions, count_unique_actions
+from src.generate import generate_to_files, check_file_format, count_times_between_actions, set_debug, count_users, count_unique_actions
 import argparse
 import os, logging
 
@@ -100,7 +100,7 @@ if args.periods <= 0:
 # log.info("Finished calculating!\n")
 
 log.info(f"Calculating number of user actions per day for {args.out_file} ...")
-count_actions(args.out_file, args.transform)
+count_users(args.out_file, args.transform)
 log.info("Finished calculating!\n")
 
 # log.info(f"Calculating unique user actions per day for {args.out_file} ...")

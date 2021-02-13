@@ -23,14 +23,13 @@ def set_debug(value):
 
 
 # TODO upravit v CONST first line
-def count_actions(file, transform):
-    log.debug("Started count_actions.")
+def count_users(file, transform):
+    log.debug("Started count_users.")
 
-    # timestamp % 86400 (60s x 60min x 24h) == 0 - to znamena dalsi den
-    actions = _get_actions(file)
+    actions = _get_users(file)
     _write_times_between_actions(file, actions, transform)
 
-    log.debug("Finished count_actions.")
+    log.debug("Finished count_users.")
 
 def count_unique_actions(file, transform):
     log.debug("Started count_unique_actions.")
@@ -46,11 +45,12 @@ def count_times_between_actions(file, transform):
 
     log.debug("Finished count_times_between_actions.")
 
-def _get_actions(file):
-    log.debug("Started _get_actions.")
+def _get_users(file):
+    log.debug("Started _get_users.")
 
     # dictionary for usernames and the last count of actions
     users = {}
+    day = 1
     # list with counts of the actions
     actions = []
 
@@ -59,11 +59,18 @@ def _get_actions(file):
         for line_n, line in enumerate(csv_r):
             if line_n == 0:
                 #first line is the names of columns
-                actions.append("user_actions_per_day")
+                actions.append("user_per_day")
                 continue
 
             user = line[CONST.USER_IDX]
             # action = line[CONST.URL_IDX]
+            time = line[CONST.TIMESTAMP_IDX]
+
+            if int(time) / day >= 86400:
+                # when there is a new day, we want to count from 1 again
+                # this will NOT work for data where the timestamps doesn't start at 0
+                users = {}
+                day = day + 1
 
             if user in users:
                 users[user] = users[user] + 1
@@ -73,7 +80,7 @@ def _get_actions(file):
                 actions.append(1)
                 users[user] = 1
 
-    log.debug("Finished _get_actions.")
+    log.debug("Finished _get_users.")
 
     return actions
 
@@ -480,3 +487,6 @@ def _get_attack_intervals(attacks):
     log.debug("Finished _get_attack_intervals.")
 
     return intervals
+
+if __name__ == "__main__":
+    print(172800 > 7)
