@@ -21,14 +21,6 @@ def set_debug(value):
     log.setLevel(logging.DEBUG)
     log.debug("Debug mode active!")
 
-class User:
-    def __init__(self, name, first_url, first_count):
-        self.name = name
-        self.urls = {first_url: first_count}
-
-    def incr_count(self, url):
-        self.urls[url] = self.urls[url] + 1
-
 # TODO upravit v CONST first line
 def count_users(file, transform):
     log.debug("Started count_users.")
@@ -536,11 +528,3 @@ def _get_attack_intervals(attacks):
     log.debug("Finished _get_attack_intervals.")
 
     return intervals
-
-if __name__ == "__main__":
-    negr = {1: {'url' :5}, 2:{'url2':1}}
-    print(negr)
-    print(negr[1]['url'])
-
-    negr[2]['url3'] =  4
-    print(negr)
