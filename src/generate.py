@@ -22,6 +22,12 @@ def set_debug(value):
     log.debug("Debug mode active!")
 
 # TODO upravit v CONST first line
+# TODO refactoring
+### TODO sjednotit count users a count unique actions
+### fixnout transform ve start.py a ve append column
+### sjednotit nejak get unique a get users
+##### asi by slo pouzivat dva dictionaries - jeden pro user_unique_actions, jeden pro user_actions
+##### obdobne pro get_times_between_actions a count_times_between_actions
 def count_users(file, transform):
     log.debug("Started count_users.")
 
