@@ -21,19 +21,28 @@ def set_debug(value):
     log.setLevel(logging.DEBUG)
     log.debug("Debug mode active!")
 
+class User:
+    def __init__(self, name, first_url, first_count):
+        self.name = name
+        self.urls = {first_url: first_count}
+
+    def incr_count(self, url):
+        self.urls[url] = self.urls[url] + 1
 
 # TODO upravit v CONST first line
 def count_users(file, transform):
     log.debug("Started count_users.")
 
-    actions = _get_users(file)
-    _write_times_between_actions(file, actions, transform)
+    users = _get_users(file)
+    _append_column_to_csv(file, users, transform)
 
     log.debug("Finished count_users.")
 
 def count_unique_actions(file, transform):
     log.debug("Started count_unique_actions.")
 
+    actions = _get_unique_actions(file)
+    _append_column_to_csv(file, actions, transform)
 
     log.debug("Finished count_unique_actions.")
 
@@ -41,9 +50,51 @@ def count_times_between_actions(file, transform):
     log.debug("Started count_times_between_actions.")
 
     times = _get_times_between_actions(file)
-    _write_times_between_actions(file, times, transform)
+    _append_column_to_csv(file, times, transform)
 
     log.debug("Finished count_times_between_actions.")
+
+def _get_unique_actions(file):
+    log.debug("Started _get_unique_actions.")
+
+    # dictionary of users, where every user has a dictionary of urls
+    # {user1: {'url1': 1, 'url2': 5}, user2: {'url2': 1}}
+    users = {}
+    day = 1
+    actions = []
+
+    with open(file, 'r', encoding='utf-8') as f_in:
+        csv_r = csv.reader(f_in, delimiter=CONST.SEPARATOR)
+        for line_n, line in enumerate(csv_r):
+            if line_n == 0:
+                #first line - append names of columns
+                actions.append("unique_actions_per_day")
+                continue
+
+            user = line[CONST.USER_IDX]
+            url = line[CONST.URL_IDX]
+            time = line[CONST.TIMESTAMP_IDX]
+
+            if int(time) / day >= 86400:
+                # when there is a new day, we want to count from 1 again
+                # this will NOT work for data where the timestamps doesn't start at 0
+                users = {}
+                day = day + 1
+
+            if user in users:
+                if url in users[user]:
+                    users[user][url] = users[user][url] + 1
+                    actions.append(users[user][url])
+                else:
+                    users[user][url] = 1
+                    actions.append(1)
+            else:
+                users[user] = {url: 1}
+                actions.append(1)
+
+    log.debug("Finished _get_unique_actions.")
+
+    return actions
 
 def _get_users(file):
     log.debug("Started _get_users.")
@@ -63,7 +114,6 @@ def _get_users(file):
                 continue
 
             user = line[CONST.USER_IDX]
-            # action = line[CONST.URL_IDX]
             time = line[CONST.TIMESTAMP_IDX]
 
             if int(time) / day >= 86400:
@@ -83,7 +133,6 @@ def _get_users(file):
     log.debug("Finished _get_users.")
 
     return actions
-
 
 def _get_times_between_actions(file):
     log.debug("Started _get_times_between_actions.")
@@ -125,9 +174,9 @@ def _get_times_between_actions(file):
 
     return times
 
-def _write_times_between_actions(file, actions, transform):
-    log.debug("Started _write_times_between_actions.")
-    log.info("Writing times between actions into the output file (this will take a while) ...")
+def _append_column_to_csv(file, column, transform):
+    log.debug("Started _append_column_to_csv.")
+    log.info("Appending a column into the output file (this will take a while) ...")
 
     f_in = open(file, 'r', encoding="utf-8")
     csv_r = csv.reader(f_in, delimiter=CONST.SEPARATOR)
@@ -137,7 +186,7 @@ def _write_times_between_actions(file, actions, transform):
     csv_w = csv.writer(f_out, delimiter=CONST.SEPARATOR, quoting=csv.QUOTE_ALL)
 
     for line_n, line in enumerate(csv_r):
-        line.append(str(actions[line_n]))
+        line.append(str(column[line_n]))
         csv_w.writerow(line)
 
     f_in.close()
@@ -147,7 +196,7 @@ def _write_times_between_actions(file, actions, transform):
     #     os.remove(file)
     #     os.rename(file + '_times', file)
 
-    log.debug("Finished _write_times_between_actions.")
+    log.debug("Finished _append_column_to_csv.")
 
 def check_file_format(file):
     log.debug("Started check_file_format.")
@@ -489,4 +538,9 @@ def _get_attack_intervals(attacks):
     return intervals
 
 if __name__ == "__main__":
-    print(172800 > 7)
+    negr = {1: {'url' :5}, 2:{'url2':1}}
+    print(negr)
+    print(negr[1]['url'])
+
+    negr[2]['url3'] =  4
+    print(negr)

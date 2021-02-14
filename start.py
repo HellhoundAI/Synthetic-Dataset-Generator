@@ -99,12 +99,12 @@ if args.periods <= 0:
 # count_times_between_actions(args.out_file, args.transform)
 # log.info("Finished calculating!\n")
 
-log.info(f"Calculating number of user actions per day for {args.out_file} ...")
-count_users(args.out_file, args.transform)
-log.info("Finished calculating!\n")
-
-# log.info(f"Calculating unique user actions per day for {args.out_file} ...")
-# count_unique_actions(args.out_file, args.transform)
+# log.info(f"Calculating number of user actions per day for {args.out_file} ...")
+# count_users(args.out_file, args.transform)
 # log.info("Finished calculating!\n")
+
+log.info(f"Calculating unique user actions per day for {args.out_file} ...")
+count_unique_actions(args.out_file, args.transform)
+log.info("Finished calculating!\n")
 
 log.info("All done!\n")
