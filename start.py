@@ -1,4 +1,4 @@
-from src.generate import generate_to_files, check_file_format, count_times_between_actions, set_debug, count_actions_per_day, count_unique_actions_per_day
+from src.generate import generate_to_files, check_file_format, count_times_between_actions, set_debug, count_actions_per_day
 import argparse
 import os, logging
 
@@ -63,10 +63,6 @@ if args.transform is not None:
         count_actions_per_day(args.log_file, args.transform)
         log.info("Finished calculating!\n")
 
-        log.info(f"Calculating unique user actions per day for {args.log_file} ...")
-        count_unique_actions_per_day(args.log_file, args.transform)
-        log.info("Finished calculating!\n")
-
     else:
         log.info("Wrong transform argument!\n")
 
@@ -111,10 +107,6 @@ log.info("Finished calculating!\n")
 
 log.info(f"Calculating user actions per day for {args.out_file} ...")
 count_actions_per_day(args.out_file, args.transform)
-log.info("Finished calculating!\n")
-
-log.info(f"Calculating unique user actions per day for {args.out_file} ...")
-count_unique_actions_per_day(args.out_file, args.transform)
 log.info("Finished calculating!\n")
 
 log.info("All done!\n")

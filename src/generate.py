@@ -23,30 +23,17 @@ def set_debug(value):
 
 # TODO upravit v CONST first line
 # TODO refactoring
-### TODO sjednotit count users a count unique actions
-### fixnout transform ve start.py a ve append column
-### sjednotit nejak get unique a get users
-##### asi by slo pouzivat dva dictionaries - jeden pro user_unique_actions, jeden pro user_actions
-##### obdobne pro get_times_between_actions a count_times_between_actions
-def count_actions_per_day(file, transform):
-    log.debug("Started count_actions_per_day.")
+##### sjednotit? get_times_between_actions a count_times_between_actions
 
-    actions = _get_actions(file)
+def count_actions_per_day(file, transform):
+    actions, unique_actions = _get_actions(file)
     _append_column_to_csv(file, 'actions_' + file, actions, transform)
 
-    log.debug("Finished count_actions_per_day.")
-    
-def count_unique_actions_per_day(file, transform):
-    log.debug("Started count_unique_actions_per_day.")
-
-    unique_actions = _get_unique_actions(file)
     if transform is not None:
         _append_column_to_csv('actions_' + file, 'uactions_' + file, unique_actions, transform)
         os.remove('actions_' + file)
     else:
         _append_column_to_csv(file, 'uactions_' + file, unique_actions, transform)
-
-    log.debug("Finished count_unique_actions_per_day.")
 
 def count_times_between_actions(file, transform):
     log.debug("Started count_times_between_actions.")
@@ -56,21 +43,27 @@ def count_times_between_actions(file, transform):
 
     log.debug("Finished count_times_between_actions.")
 
-def _get_unique_actions(file):
-    log.debug("Started _get_unique_actions.")
+def _get_actions(file):
+    log.debug("Started _get_actions.")
 
     # dictionary of users, where every user has a dictionary of urls
     # {user1: {'url1': 1, 'url2': 5}, user2: {'url2': 1}}
+    url_users = {}
+    # dictionary for usernames and the last count of actions
+    # {user1: 2, user2: 4, user3: 1}
     users = {}
     day = 1
+    # list with counts of the actions
     actions = []
+    unique_actions = []
 
     with open(file, 'r', encoding='utf-8') as f_in:
         csv_r = csv.reader(f_in, delimiter=CONST.SEPARATOR)
         for line_n, line in enumerate(csv_r):
             if line_n == 0:
                 #first line - append names of columns
-                actions.append("unique_actions_per_day")
+                actions.append("user_per_day")
+                unique_actions.append("unique_actions_per_day")
                 continue
 
             user = line[CONST.USER_IDX]
@@ -81,24 +74,31 @@ def _get_unique_actions(file):
                 # when there is a new day, we want to count from 1 again
                 # this will NOT work for data where the timestamps doesn't start at 0
                 users = {}
+                url_users = {}
                 day = day + 1
 
-            if user in users:
-                if url in users[user]:
-                    users[user][url] = users[user][url] + 1
-                    actions.append(users[user][url])
+            if user in url_users:
+                if url in url_users[user]:
+                    url_users[user][url] = url_users[user][url] + 1
+                    unique_actions.append(url_users[user][url])
                 else:
-                    users[user][url] = 1
-                    actions.append(1)
+                    url_users[user][url] = 1
+                    unique_actions.append(1)
+
+                users[user] = users[user] + 1
+                actions.append(users[user])
             else:
-                users[user] = {url: 1}
+                url_users[user] = {url: 1}
+                unique_actions.append(1)
+
                 actions.append(1)
+                users[user] = 1
 
-    log.debug("Finished _get_unique_actions.")
+    log.debug("Finished _get_actions.")
 
-    return actions
+    return actions, unique_actions
 
-def _get_actions(file):
+def __get_actions(file):
     log.debug("Started _get_actions")
 
     # dictionary for usernames and the last count of actions
@@ -183,7 +183,6 @@ def _append_column_to_csv(file_old, file_new, column, transform):
     f_in = open(file_old, 'r', encoding="utf-8")
     csv_r = csv.reader(f_in, delimiter=CONST.SEPARATOR)
     # because of windows, we add the newline parameter. otherwise every other line would be empty. works with linux too
-    # we also probably want to delete the IN file here, rename the OUT file to the name of IN file
     f_out = open(file_new, 'w', encoding="utf-8", newline='')
     csv_w = csv.writer(f_out, delimiter=CONST.SEPARATOR, quoting=csv.QUOTE_ALL)
 
