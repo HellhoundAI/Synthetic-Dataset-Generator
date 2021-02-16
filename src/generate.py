@@ -8,7 +8,8 @@ class CONST(object):
 
     SEPARATOR = ','
     FIRST_LINE = ['"id_norm","user","timestamp_norm","url","ip","parameters_hash","asn","bgp_prefix","as_name","net_name","country_code","attack"\n',
-                    '"id_norm","user","timestamp_norm","url","ip","parameters_hash","asn","bgp_prefix","as_name","net_name","country_code","attack","time_from_last_action"\n']
+                    '"id_norm","user","timestamp_norm","url","ip","parameters_hash","asn","bgp_prefix","as_name","net_name","country_code","attack","time_from_last_action"\n',
+                    '"id_norm","user","timestamp_norm","url","ip","parameters_hash","asn","bgp_prefix","as_name","net_name","country_code","attack","time_from_last_action","user_per_day","unique_actions_per_day"\n']
     # indices for certain columns in datasets that are often used in code
     USER_IDX = 1
     TIMESTAMP_IDX = 2
@@ -21,25 +22,24 @@ def set_debug(value):
     log.setLevel(logging.DEBUG)
     log.debug("Debug mode active!")
 
-# TODO upravit v CONST first line
 # TODO refactoring
 ##### sjednotit? get_times_between_actions a count_times_between_actions
 
 def count_actions_per_day(file, transform):
     actions, unique_actions = _get_actions(file)
-    _append_column_to_csv(file, 'actions_' + file, actions, transform)
+    _append_column_to_csv(file, file + '_actions', actions, transform)
 
     if transform is not None:
-        _append_column_to_csv('actions_' + file, 'uactions_' + file, unique_actions, transform)
-        os.remove('actions_' + file)
+        _append_column_to_csv(file + '_actions', file + '_uactions', unique_actions, transform)
+        os.remove(file + '_actions')
     else:
-        _append_column_to_csv(file, 'uactions_' + file, unique_actions, transform)
+        _append_column_to_csv(file, file + '_uactions', unique_actions, transform)
 
 def count_times_between_actions(file, transform):
     log.debug("Started count_times_between_actions.")
 
     times = _get_times_between_actions(file)
-    _append_column_to_csv(file, 'times_' + file, times, transform)
+    _append_column_to_csv(file, file + '_times', times, transform)
 
     log.debug("Finished count_times_between_actions.")
 
@@ -97,44 +97,6 @@ def _get_actions(file):
     log.debug("Finished _get_actions.")
 
     return actions, unique_actions
-
-def __get_actions(file):
-    log.debug("Started _get_actions")
-
-    # dictionary for usernames and the last count of actions
-    users = {}
-    day = 1
-    # list with counts of the actions
-    actions = []
-
-    with open(file, 'r', encoding='utf-8') as f_in:
-        csv_r = csv.reader(f_in, delimiter=CONST.SEPARATOR)
-        for line_n, line in enumerate(csv_r):
-            if line_n == 0:
-                #first line is the names of columns
-                actions.append("user_per_day")
-                continue
-
-            user = line[CONST.USER_IDX]
-            time = line[CONST.TIMESTAMP_IDX]
-
-            if int(time) / day >= 86400:
-                # when there is a new day, we want to count from 1 again
-                # this will NOT work for data where the timestamps doesn't start at 0
-                users = {}
-                day = day + 1
-
-            if user in users:
-                users[user] = users[user] + 1
-                actions.append(users[user])
-            else:
-                # first case with this username
-                actions.append(1)
-                users[user] = 1
-
-    log.debug("Finished _get_actions.")
-
-    return actions
 
 def _get_times_between_actions(file):
     log.debug("Started _get_times_between_actions.")
