@@ -28,27 +28,31 @@ def set_debug(value):
 ### sjednotit nejak get unique a get users
 ##### asi by slo pouzivat dva dictionaries - jeden pro user_unique_actions, jeden pro user_actions
 ##### obdobne pro get_times_between_actions a count_times_between_actions
-def count_users(file, transform):
-    log.debug("Started count_users.")
+def count_actions_per_day(file, transform):
+    log.debug("Started count_actions_per_day.")
 
-    users = _get_users(file)
-    _append_column_to_csv(file, users, transform)
+    actions = _get_actions(file)
+    _append_column_to_csv(file, 'actions_' + file, actions, transform)
 
-    log.debug("Finished count_users.")
+    log.debug("Finished count_actions_per_day.")
+    
+def count_unique_actions_per_day(file, transform):
+    log.debug("Started count_unique_actions_per_day.")
 
-def count_unique_actions(file, transform):
-    log.debug("Started count_unique_actions.")
+    unique_actions = _get_unique_actions(file)
+    if transform is not None:
+        _append_column_to_csv('actions_' + file, 'uactions_' + file, unique_actions, transform)
+        os.remove('actions_' + file)
+    else:
+        _append_column_to_csv(file, 'uactions_' + file, unique_actions, transform)
 
-    actions = _get_unique_actions(file)
-    _append_column_to_csv(file, actions, transform)
-
-    log.debug("Finished count_unique_actions.")
+    log.debug("Finished count_unique_actions_per_day.")
 
 def count_times_between_actions(file, transform):
     log.debug("Started count_times_between_actions.")
 
     times = _get_times_between_actions(file)
-    _append_column_to_csv(file, times, transform)
+    _append_column_to_csv(file, 'times_' + file, times, transform)
 
     log.debug("Finished count_times_between_actions.")
 
@@ -94,8 +98,8 @@ def _get_unique_actions(file):
 
     return actions
 
-def _get_users(file):
-    log.debug("Started _get_users.")
+def _get_actions(file):
+    log.debug("Started _get_actions")
 
     # dictionary for usernames and the last count of actions
     users = {}
@@ -128,7 +132,7 @@ def _get_users(file):
                 actions.append(1)
                 users[user] = 1
 
-    log.debug("Finished _get_users.")
+    log.debug("Finished _get_actions.")
 
     return actions
 
@@ -172,15 +176,15 @@ def _get_times_between_actions(file):
 
     return times
 
-def _append_column_to_csv(file, column, transform):
+def _append_column_to_csv(file_old, file_new, column, transform):
     log.debug("Started _append_column_to_csv.")
     log.info("Appending a column into the output file (this will take a while) ...")
 
-    f_in = open(file, 'r', encoding="utf-8")
+    f_in = open(file_old, 'r', encoding="utf-8")
     csv_r = csv.reader(f_in, delimiter=CONST.SEPARATOR)
     # because of windows, we add the newline parameter. otherwise every other line would be empty. works with linux too
     # we also probably want to delete the IN file here, rename the OUT file to the name of IN file
-    f_out = open(file + '_times', 'w', encoding="utf-8", newline='')
+    f_out = open(file_new, 'w', encoding="utf-8", newline='')
     csv_w = csv.writer(f_out, delimiter=CONST.SEPARATOR, quoting=csv.QUOTE_ALL)
 
     for line_n, line in enumerate(csv_r):
@@ -190,9 +194,9 @@ def _append_column_to_csv(file, column, transform):
     f_in.close()
     f_out.close()
 
-    # if not transform:
-    #     os.remove(file)
-    #     os.rename(file + '_times', file)
+    if transform is None:
+        os.remove(file_old)
+        os.rename(file_new, file_old)
 
     log.debug("Finished _append_column_to_csv.")
 
