@@ -8,23 +8,17 @@ log = logging.getLogger("start")
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-af", "--attack_file", help="The text file where attack is stored.", required=False)
-parser.add_argument("-lf", "--log_file", help="The text file with network traffic logs into which attacks should be generated.", required=False)
+parser.add_argument("-lf", "--log_file", help="The text file with network traffic logs into which attacks should be generated.", required=True)
 parser.add_argument("-ca", "--cyber_attack", help="If this is set on, the program will look for a log and attack file of cyberattack in 'logs' folder.", action="store_true")
 parser.add_argument("-sa", "--simple_attack", help="If this is set on, the program will look for a log and attack file of simple automated attack in 'logs' folder.", action="store_true")
 parser.add_argument("-aa", "--advanced_attack", help="If this is set on, the program will look for a log and attack file of advanced automated attack in 'logs' folder.", action="store_true")
 parser.add_argument("-of", "--out_file", help="The output text file which will be created with the generator.", required=False)
 parser.add_argument("-a", "--attacks", help="How many attacks should be generated (in total).", 
-                    type=int, required=True)
+                    type=int, required=False)
 parser.add_argument("-p", "--periods", help="How many time periods of data should be generated. It is assumed the log file represents 1 time period. So if the log file represents 14 days, -p 1 will generate 14 days of data, -p 2 will generate 2x14 = 28 days of data etc.", 
-                    type=int, required=True)
-parser.add_argument("-t", "--transform", help="This sets on the TRANSFORM mode. The only thing the program will do is count the time between actions for LOG FILE. It will create a new file. NOT TESTED PROPERLY. USE ON OWN RISK.")
-parser.add_argument("-d", "--debug", help="Sets on the DEBUG mode. The program will print more information.", action="store_true")
-# TODO use mutually exclusive groups for the modes/other args
-# group 1 - TRANSFORM - t, d, lf
-# group 2 - af, lf, of, a, p, d
-# group 3 - ca, of, a, p, d
-# group 4 - sa, of, a, p, d
-# group 5 - aa, of, a, p, d
+                    type=int, required=False)
+parser.add_argument("-t", "--transform", choices=['times', 'actions'], help="This sets on the TRANSFORM mode. It will create a new file. Depending on the choice, it will either append a column of times between user actions, or append 2 columns of user actions per day and unique user actions per day. You MUST use the --log-file (-lf) argument to indicate the file to be transformed (not the --out-file argument).")
+parser.add_argument("-d", "--debug", help="Sets on the DEBUG mode. The program will print more information (a lot of information).", action="store_true")
 
 args = parser.parse_args()
 
@@ -48,8 +42,15 @@ if args.advanced_attack:
 # first half checks if the argument is not empty (None), because if it is, that means the user chose not to use the argument (because it is not required)
 # so in the second half, we know that something was passed as an argument for log_file
 # so we check if that is an existing file
-if args.log_file is not None and not os.path.isfile(args.log_file):
-    raise ValueError(f"Log file {args.log_file} does not exist/is not a file!")
+if args.log_file is not None:
+    if not os.path.isfile(args.log_file):
+        raise ValueError(f"Log file {args.log_file} does not exist/is not a file!")
+
+    log.info(f"Checking the file format of {args.log_file} ...")
+    if check_file_format(args.log_file):
+        log.info("OK!\n")
+    else:
+        exit()
 
 if args.transform is not None:
     log.info("Transform mode active!")
@@ -69,21 +70,28 @@ if args.transform is not None:
     log.info("All done!\n")
     exit()
 
-if args.attack_file is not None and not os.path.isfile(args.attack_file):
-    raise ValueError(f"Attack file {args.attack_file} does not exist/is not a file!")
+if args.attack_file is not None:
+    if not os.path.isfile(args.attack_file):
+        raise ValueError(f"Attack file {args.attack_file} does not exist/is not a file!")
 
-if args.attacks <= 0:
+    log.info(f"Checking the file format of {args.attack_file} ...")
+    if check_file_format(args.attack_file):
+        log.info("OK!\n")
+    else:
+        exit()
+    
+if args.attacks is not None and args.attacks <= 0:
     raise ValueError("Number of attacks must be greater than 0!")
 
-if args.periods <= 0:
+if args.periods is not None and args.periods <= 0:
     raise ValueError("Number of periods must be greater than 0!")
 
 
-log.info(f"Checking the file format of {args.attack_file} ...")
-if check_file_format(args.attack_file):
-    log.info("OK!\n")
-else:
-    exit()
+# log.info(f"Checking the file format of {args.attack_file} ...")
+# if check_file_format(args.attack_file):
+#     log.info("OK!\n")
+# else:
+#     exit()
 
 log.info(f"Checking the file format of {args.log_file} ...")
 if check_file_format(args.log_file):
@@ -110,7 +118,3 @@ count_actions_per_day(args.out_file, args.transform)
 log.info("Finished calculating!\n")
 
 log.info("All done!\n")
-
-
-# TODO clarify help (for transform modes, emphasize that it uses log file instead of out file)
-# TODO revidovat required/unrequired arguments
