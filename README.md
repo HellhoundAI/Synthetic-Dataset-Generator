@@ -47,11 +47,12 @@ The program checks for correct format, so you will be warned if it is incorrect.
     - for using the cyber attack dataset, use argument -ca
     - for using the simple automated attack dataset, use argument -sa
     - for using the advanced automated attack dataset, use argument -aa
-4. For example, the following command will use the cyber attack dataset, generate 10 attacks, and because the dataset represents 14 days of data, '-p 2' will create 28 days of data. All of this will be saved into 'output_file.csv' file.
+4. Important! Make a backup of every log/attack file you will use the program with to prevent unwanted data loss.
+5. For example, the following command will use the cyber attack dataset, generate 10 attacks, and because the dataset represents 14 days of data, '-p 2' will create 28 days of data. All of this will be saved into 'output_file.csv' file.
 ```
 $ python3 start.py -ca -of output_file.csv -a 10 -p 2
 ```
-5. Generating, calculating times between user actions, counting user actions per day takes time, the more periods and the more attacks are generated, the more time is needed. For 10 attacks and 2 periods and simple automated attack datasets, the whole process takes around 5 minutes on Intel i7 processor, 16 GB RAM and SSD.
+6. Generating, calculating times between user actions, counting user actions per day takes time, the more periods and the more attacks are generated, the more time is needed. For 10 attacks and 2 periods and simple automated attack datasets, the whole process takes around 5 minutes on Intel i7 processor, 16 GB RAM and SSD.
 
 ### More examples
 The following command will print help.
