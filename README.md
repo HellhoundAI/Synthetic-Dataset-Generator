@@ -55,7 +55,7 @@ $ python3 start.py -ca -of output_file.csv -a 10 -p 2
 6. Generating, calculating times between user actions, counting user actions per day takes time, the more periods and the more attacks are generated, the more time is needed. For 10 attacks and 2 periods and simple automated attack datasets, the whole process takes around 5 minutes on Intel i7 processor, 16 GB RAM and SSD.
 
 ### More examples
-The following command will print help.
+The following command will print help and all available commands.
 ```
 $ python3 start.py -h
 ```
