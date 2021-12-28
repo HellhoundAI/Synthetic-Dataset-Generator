@@ -8,7 +8,7 @@ log = logging.getLogger("start")
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-af", "--attack_file", help="The text file where attack is stored.", required=False)
-parser.add_argument("-lf", "--log_file", help="The text file with network traffic logs into which attacks should be generated.", required=True)
+parser.add_argument("-lf", "--log_file", help="The text file with network traffic logs into which attacks should be generated.", required=False)
 parser.add_argument("-ca", "--cyber_attack", help="If this is set on, the program will look for a log and attack file of cyberattack in 'logs' folder.", action="store_true")
 parser.add_argument("-sa", "--simple_attack", help="If this is set on, the program will look for a log and attack file of simple automated attack in 'logs' folder.", action="store_true")
 parser.add_argument("-aa", "--advanced_attack", help="If this is set on, the program will look for a log and attack file of advanced automated attack in 'logs' folder.", action="store_true")
