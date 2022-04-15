@@ -71,3 +71,9 @@ The next commands will transform a dataset - first the column with times between
 $ python3 start.py -lf test_log -t times
 $ python3 start.py -lf test_log_times -t actions
 ```
+## Authors
+Bc. Jiří Mareš
+Ing. Pavel Strnad
+Ing. Lukáš Švarc
+Ing. Jiří Zettel
+prof. Ing. Petr Berka, CSc.
