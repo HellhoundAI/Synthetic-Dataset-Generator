@@ -72,8 +72,8 @@ $ python3 start.py -lf test_log -t times
 $ python3 start.py -lf test_log_times -t actions
 ```
 ## Authors
-Bc. Jiří Mareš --
-Ing. Pavel Strnad
-Ing. Lukáš Švarc
-Ing. Jiří Zettel
+Bc. Jiří Mareš </br>
+Ing. Pavel Strnad </br>
+Ing. Lukáš Švarc </br>
+Ing. Jiří Zettel </br>
 prof. Ing. Petr Berka, CSc.
